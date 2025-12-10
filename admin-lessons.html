@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Secret Coder : Quản lý Bài học</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+    <link href="img/icon.png" rel="icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #181d38 0%, #2d3561 100%);
+            color: white;
+            position: fixed;
+            width: 250px;
+            left: 0;
+            top: 0;
+            padding-top: 20px;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu li {
+            margin: 5px 0;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: rgba(251, 135, 63, 0.2);
+            color: #fb873f;
+            border-left-color: #fb873f;
+        }
+
+        .sidebar-menu a i {
+            width: 25px;
+            margin-right: 15px;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+
+        .topbar {
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .lesson-item {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .lesson-item:hover {
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h4 class="mb-0"><i class="fa fa-graduation-cap me-2"></i>Admin Panel</h4>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="admin.html"><i class="fa fa-home"></i><span>Dashboard</span></a></li>
+            <li><a href="admin-users.html"><i class="fa fa-users"></i><span>Quản lý Học viên</span></a></li>
+            <li><a href="admin-courses.html"><i class="fa fa-book"></i><span>Quản lý Khóa học</span></a></li>
+            <li><a href="admin-lessons.html" class="active"><i class="fa fa-video"></i><span>Quản lý Bài học</span></a></li>
+            <li><a href="admin-stats.html"><i class="fa fa-chart-bar"></i><span>Thống kê</span></a></li>
+            <li><a href="index.html"><i class="fa fa-arrow-left"></i><span>Về Trang chủ</span></a></li>
+            <li><a href="#" onclick="logout()"><i class="fa fa-sign-out-alt"></i><span>Đăng xuất</span></a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="topbar">
+            <div>
+                <h5 class="mb-0">Quản lý Bài học</h5>
+            </div>
+            <div>
+                <select id="courseSelect" class="form-select d-inline-block me-2" style="width: 250px;">
+                    <option value="">Chọn khóa học...</option>
+                </select>
+                <button class="btn btn-primary" onclick="showAddLessonModal()">
+                    <i class="fa fa-plus me-2"></i>Thêm Bài học
+                </button>
+            </div>
+        </div>
+
+        <div class="content-card">
+            <div id="lessonsContainer">
+                <p class="text-center text-muted">Vui lòng chọn khóa học để xem bài học</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Lesson Modal -->
+    <div class="modal fade" id="lessonModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="lessonModalTitle">Thêm Bài học</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="lessonForm">
+                        <input type="hidden" id="lessonId">
+                        <div class="mb-3">
+                            <label class="form-label">Tiêu đề *</label>
+                            <input type="text" class="form-control" id="lessonTitle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Mô tả</label>
+                            <textarea class="form-control" id="lessonDescription" rows="3"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Khóa học *</label>
+                                <select class="form-select" id="lessonCourse" required>
+                                    <option value="">Chọn khóa học</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Thời lượng (phút)</label>
+                                <input type="number" class="form-control" id="lessonDuration" min="0">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Video URL (YouTube/Vimeo hoặc để trống nếu upload file)</label>
+                            <input type="text" class="form-control" id="lessonVideoUrl" 
+                                   placeholder="https://www.youtube.com/watch?v=...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Loại video</label>
+                            <select class="form-select" id="lessonVideoType">
+                                <option value="youtube">YouTube</option>
+                                <option value="vimeo">Vimeo</option>
+                                <option value="local">Local File</option>
+                                <option value="external">External URL</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nội dung bài học (HTML)</label>
+                            <textarea class="form-control" id="lessonContent" rows="5"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Trạng thái</label>
+                            <select class="form-select" id="lessonStatus">
+                                <option value="draft">Bản nháp</option>
+                                <option value="published">Đã xuất bản</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="saveLesson()">Lưu</button>
+                    <button type="button" class="btn btn-info" onclick="window.location.href='lesson-upload.html'">
+                        <i class="fa fa-upload me-1"></i>Upload Files
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/api.js"></script>
+    <script>
+        let lessons = [];
+        let courses = [];
+        let editingLessonId = null;
+
+        async function checkAdmin() {
+            if (!API.isAuthenticated()) {
+                window.location.href = 'login.html';
+                return false;
+            }
+            try {
+                const result = await API.getCurrentUser();
+                if (result.success && result.user) {
+                    if (result.user.role !== 'admin' && result.user.role !== 'instructor') {
+                        alert('Bạn không có quyền truy cập!');
+                        window.location.href = 'index.html';
+                        return false;
+                    }
+                    return true;
+                }
+            } catch (error) {
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
+
+        async function loadCourses() {
+            try {
+                const result = await API.getCourses({ limit: 1000 });
+                if (result.success) {
+                    courses = result.data || [];
+                    const select = document.getElementById('courseSelect');
+                    const lessonSelect = document.getElementById('lessonCourse');
+                    
+                    courses.forEach(course => {
+                        const option1 = new Option(course.title, course._id);
+                        const option2 = new Option(course.title, course._id);
+                        select.add(option1);
+                        lessonSelect.add(option2);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading courses:', error);
+            }
+        }
+
+        async function loadLessons() {
+            const courseId = document.getElementById('courseSelect').value;
+            if (!courseId) {
+                document.getElementById('lessonsContainer').innerHTML = 
+                    '<p class="text-center text-muted">Vui lòng chọn khóa học</p>';
+                return;
+            }
+
+            try {
+                const result = await API.getCourseLessons(courseId);
+                if (result.success) {
+                    lessons = [];
+                    result.data.forEach(section => {
+                        section.lessons.forEach(lesson => {
+                            lessons.push({ ...lesson, sectionName: section.title });
+                        });
+                    });
+                    renderLessons();
+                }
+            } catch (error) {
+                console.error('Error loading lessons:', error);
+                document.getElementById('lessonsContainer').innerHTML = 
+                    '<p class="text-center text-danger">Lỗi khi tải dữ liệu</p>';
+            }
+        }
+
+        function renderLessons() {
+            const container = document.getElementById('lessonsContainer');
+            if (lessons.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">Không có bài học nào</p>';
+                return;
+            }
+
+            container.innerHTML = lessons.map(lesson => `
+                <div class="lesson-item">
+                    <div class="row align-items-center">
+                        <div class="col-md-1">
+                            <i class="fa fa-video text-danger fa-2x"></i>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-1">${lesson.title}</h6>
+                            <p class="text-muted small mb-1">${lesson.sectionName || 'N/A'}</p>
+                            <div class="d-flex gap-2">
+                                <span class="badge bg-secondary">${lesson.duration || 0} phút</span>
+                                <span class="badge ${lesson.status === 'published' ? 'bg-success' : 'bg-warning'}">
+                                    ${lesson.status === 'published' ? 'Đã xuất bản' : 'Bản nháp'}
+                                </span>
+                                ${lesson.files?.video ? '<span class="badge bg-info">Có Video</span>' : ''}
+                                ${lesson.files?.audio ? '<span class="badge bg-success">Có Audio</span>' : ''}
+                                ${lesson.files?.pdf ? '<span class="badge bg-danger">Có PDF</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <small class="text-muted">${lesson.viewCount || 0} lượt xem</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="btn-group w-100">
+                                <button class="btn btn-sm btn-primary" onclick="editLesson('${lesson._id}')">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-info" onclick="viewLesson('${lesson._id}')">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-warning" onclick="window.location.href='lesson-upload.html?lesson=${lesson._id}'">
+                                    <i class="fa fa-upload"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteLesson('${lesson._id}')">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showAddLessonModal() {
+            editingLessonId = null;
+            document.getElementById('lessonModalTitle').textContent = 'Thêm Bài học';
+            document.getElementById('lessonForm').reset();
+            document.getElementById('lessonId').value = '';
+            new bootstrap.Modal(document.getElementById('lessonModal')).show();
+        }
+
+        async function editLesson(lessonId) {
+            const lesson = lessons.find(l => l._id === lessonId);
+            if (!lesson) return;
+
+            editingLessonId = lessonId;
+            document.getElementById('lessonModalTitle').textContent = 'Sửa Bài học';
+            document.getElementById('lessonId').value = lessonId;
+            document.getElementById('lessonTitle').value = lesson.title;
+            document.getElementById('lessonDescription').value = lesson.description || '';
+            document.getElementById('lessonCourse').value = lesson.course?._id || lesson.course;
+            document.getElementById('lessonDuration').value = lesson.duration || 0;
+            document.getElementById('lessonVideoUrl').value = lesson.videoUrl || '';
+            document.getElementById('lessonVideoType').value = lesson.videoType || 'youtube';
+            document.getElementById('lessonContent').value = lesson.content || '';
+            document.getElementById('lessonStatus').value = lesson.status;
+
+            new bootstrap.Modal(document.getElementById('lessonModal')).show();
+        }
+
+        async function saveLesson() {
+            const form = document.getElementById('lessonForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const lessonData = {
+                title: document.getElementById('lessonTitle').value,
+                description: document.getElementById('lessonDescription').value,
+                course: document.getElementById('lessonCourse').value,
+                duration: parseInt(document.getElementById('lessonDuration').value) || 0,
+                videoUrl: document.getElementById('lessonVideoUrl').value,
+                videoType: document.getElementById('lessonVideoType').value,
+                content: document.getElementById('lessonContent').value,
+                status: document.getElementById('lessonStatus').value
+            };
+
+            try {
+                if (editingLessonId) {
+                    await API.updateLesson(editingLessonId, lessonData);
+                    alert('Cập nhật bài học thành công!');
+                } else {
+                    await API.createLesson(lessonData);
+                    alert('Tạo bài học thành công!');
+                }
+                bootstrap.Modal.getInstance(document.getElementById('lessonModal')).hide();
+                await loadLessons();
+            } catch (error) {
+                alert('Lỗi: ' + error.message);
+            }
+        }
+
+        async function deleteLesson(lessonId) {
+            if (!confirm('Bạn có chắc muốn xóa bài học này?')) return;
+
+            try {
+                await API.deleteLesson(lessonId);
+                alert('Xóa bài học thành công!');
+                await loadLessons();
+            } catch (error) {
+                alert('Lỗi: ' + error.message);
+            }
+        }
+
+        function viewLesson(lessonId) {
+            window.location.href = `lesson.html?id=${lessonId}`;
+        }
+
+        function logout() {
+            if (confirm('Bạn có chắc muốn đăng xuất?')) {
+                API.logout();
+            }
+        }
+
+        // Event listeners
+        document.getElementById('courseSelect').addEventListener('change', loadLessons);
+
+        // Initialize
+        $(document).ready(async function() {
+            const isAdmin = await checkAdmin();
+            if (isAdmin) {
+                await loadCourses();
+            }
+        });
+    </script>
+</body>
+
+</html>
+
