@@ -20,6 +20,8 @@ const storage = multer.diskStorage({
             uploadPath = path.join(uploadsDir, 'pdfs');
         } else if (file.mimetype.startsWith('audio/')) {
             uploadPath = path.join(uploadsDir, 'audios');
+        } else if (file.mimetype.startsWith('image/')) {
+            uploadPath = path.join(uploadsDir, 'images');
         } else {
             uploadPath = path.join(uploadsDir, 'others');
         }
@@ -40,7 +42,7 @@ const storage = multer.diskStorage({
     }
 });
 
-// File filter - chỉ cho phép PDF, MP3, MP4
+// File filter - cho phép PDF, MP3/MP4 (audio/video) và ảnh
 const fileFilter = (req, file, cb) => {
     const allowedTypes = [
         'application/pdf',
@@ -48,13 +50,17 @@ const fileFilter = (req, file, cb) => {
         'audio/mp3',
         'video/mp4',
         'video/mpeg',
-        'audio/mp4'
+        'audio/mp4',
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'image/gif'
     ];
     
     if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
-        cb(new Error('Chỉ cho phép upload file PDF, MP3, MP4'), false);
+        cb(new Error('Chỉ cho phép upload file PDF, MP3/MP4, ảnh'), false);
     }
 };
 

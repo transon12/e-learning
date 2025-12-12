@@ -174,10 +174,11 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 
 const route = useRoute()
+const router = useRouter()
 const selectedLessonId = ref(route.params.lessonId || '')
 const lessons = ref([])
 const lessonFiles = ref({})
@@ -295,6 +296,27 @@ const uploadFile = async (file, type) => {
     return
   }
 
+  // Chỉ cho phép 1 loại media; nếu chọn loại khác, hỏi và xóa loại cũ rồi upload
+  const hasVideo = !!lessonFiles.value.video
+  const hasAudio = !!lessonFiles.value.audio
+  const hasPdf = !!lessonFiles.value.pdf
+
+  if (hasVideo && type !== 'video') {
+    const ok = confirm('Bài học đã có Video. Xóa Video cũ và upload loại media mới?')
+    if (!ok) return
+    await deleteFile('video', true)
+  }
+  if (hasAudio && type !== 'audio') {
+    const ok = confirm('Bài học đã có Audio. Xóa Audio cũ và upload loại media mới?')
+    if (!ok) return
+    await deleteFile('audio', true)
+  }
+  if (hasPdf && type !== 'pdf') {
+    const ok = confirm('Bài học đã có PDF. Xóa PDF cũ và upload loại media mới?')
+    if (!ok) return
+    await deleteFile('pdf', true)
+  }
+
   const formData = new FormData()
   formData.append(type, file)
 
@@ -323,6 +345,8 @@ const uploadFile = async (file, type) => {
     if (response.data.success) {
       alert(`Upload ${type} thành công!`)
       await loadLessonFiles()
+      // Quay lại màn trước sau khi upload thành công
+      router.back()
     }
   } catch (error) {
     alert('Lỗi upload: ' + (error.response?.data?.message || error.message))
@@ -334,8 +358,8 @@ const uploadFile = async (file, type) => {
   }
 }
 
-const deleteFile = async (type) => {
-  if (!confirm(`Bạn có chắc muốn xóa file ${type}?`)) return
+const deleteFile = async (type, skipConfirm = false) => {
+  if (!skipConfirm && !confirm(`Bạn có chắc muốn xóa file ${type}?`)) return
 
   try {
     await api.delete(`/upload/lesson/${selectedLessonId.value}/file/${type}`)

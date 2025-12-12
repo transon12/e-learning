@@ -123,13 +123,15 @@ CREATE TABLE IF NOT EXISTS enrollments (
     user_id INT NOT NULL,
     course_id INT NOT NULL,
     progress DECIMAL(5, 2) DEFAULT 0.00 COMMENT 'percentage 0-100',
+    status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
     enrolledAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
     UNIQUE KEY unique_enrollment (user_id, course_id),
     INDEX idx_user (user_id),
-    INDEX idx_course (course_id)
+    INDEX idx_course (course_id),
+    INDEX idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Completed Lessons Table

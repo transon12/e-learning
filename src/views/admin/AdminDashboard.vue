@@ -87,16 +87,53 @@ const stats = ref({
 })
 
 onMounted(async () => {
+  await loadStats()
+})
+
+const loadStats = async () => {
+  loading.value = true
   try {
-    console.log(1111111111111111);
-    
     const response = await api.get('/admin/stats')
-    stats.value = response.data.data
+    stats.value = response.data.data || {
+      totalUsers: 0,
+      totalCourses: 0,
+      totalLessons: 0,
+      totalEnrollments: 0,
+      recentUsers: []
+    }
   } catch (error) {
     console.error('Error fetching stats:', error)
+    alert('Lỗi khi tải thống kê')
   } finally {
     loading.value = false
   }
-})
+}
 </script>
+
+<style scoped>
+.card {
+  min-height: 120px;
+}
+
+@media (max-width: 991.98px) {
+  .row.g-4 > [class*='col-'] {
+    margin-bottom: 12px;
+  }
+  .card {
+    min-height: auto;
+  }
+  .table {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .table-responsive {
+    overflow-x: auto;
+  }
+  h2 {
+    font-size: 22px;
+  }
+}
+</style>
 

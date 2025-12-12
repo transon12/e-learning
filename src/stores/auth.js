@@ -3,7 +3,9 @@ import { ref, computed } from 'vue'
 import api from '@/services/api'
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref(localStorage.getItem('user') || null)
+  // Parse user from localStorage (it's stored as JSON string)
+  const cachedUser = localStorage.getItem('user')
+  const user = ref(cachedUser ? JSON.parse(cachedUser) : null)
   const token = ref(localStorage.getItem('token') || null)
   const initialized = ref(false)
   let initPromise = null
@@ -26,22 +28,20 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Set user
   function setUser(userData) {
-    console.log(userData, '333333333');
-    
     user.value = userData
-    console.log(user.value, '444444444');
-    
+    if (userData) {
+      localStorage.setItem('user', JSON.stringify(userData))
+    } else {
+      localStorage.removeItem('user')
+    }
   }
 
   // Login
   async function login(credentials) {
     try {
       const response = await api.post('/auth/login', credentials)
-      console.log(response.data, '222222222');
-      
       setToken(response.data.token)
       setUser(response.data.user)
-      
       return { success: true }
     } catch (error) {
       console.error('Login error', error.response || error.message)
@@ -71,17 +71,17 @@ export const useAuthStore = defineStore('auth', () => {
   function logout() {
     setToken(null)
     setUser(null)
-    console.log(user.value, '555555555');
-    
   }
 
   // Fetch current user
   async function fetchUser() {
     try {
       const response = await api.get('/auth/me')
+      console.log('fetchUser success:', response.data.user)
       setUser(response.data.user)
       return { success: true }
     } catch (error) {
+      console.error('fetchUser error:', error.response?.status, error.response?.data)
       logout()
       return { success: false }
     }
@@ -89,7 +89,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Initialize auth once per app start
   async function init() {
-    if (initialized.value) return
+    if (initialized.value) {
+      console.log('init: already initialized')
+      return
+    }
     initialized.value = true
 
     // restore cached user (optimistic) then refresh from API
@@ -97,14 +100,19 @@ export const useAuthStore = defineStore('auth', () => {
     if (cachedUser) {
       try {
         user.value = JSON.parse(cachedUser)
+        console.log('init: restored cached user:', user.value)
       } catch (e) {
+        console.error('init: failed to parse cached user:', e)
         localStorage.removeItem('user')
       }
     }
 
     if (token.value) {
+      console.log('init: token exists, fetching user from API')
       api.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
       await fetchUser()
+    } else {
+      console.log('init: no token found')
     }
   }
 
@@ -125,7 +133,7 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     logout,
     fetchUser,
-    persist: true
+    ensureInit
   }
 })
 

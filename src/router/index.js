@@ -32,6 +32,16 @@ const routes = [
         path: 'register',
         name: 'Register',
         component: () => import('@/views/Register.vue')
+      },
+      {
+        path: 'courses',
+        name: 'Courses',
+        component: () => import('@/views/Courses.vue')
+      },
+      {
+        path: 'about',
+        name: 'About',
+        component: () => import('@/views/Home.vue')
       }
     ]
   },
@@ -59,6 +69,16 @@ const routes = [
         path: 'lessons',
         name: 'AdminLessons',
         component: () => import('@/views/admin/AdminLessons.vue')
+      },
+      {
+        path: 'sections',
+        name: 'AdminCourseSections',
+        component: () => import('@/views/admin/AdminCourseSections.vue')
+      },
+      {
+        path: 'enrollments',
+        name: 'AdminEnrollments',
+        component: () => import('@/views/admin/AdminEnrollments.vue')
       },
       {
         path: 'stats',
@@ -94,19 +114,31 @@ router.beforeEach(async (to, from, next) => {
 
   // Khôi phục store (token/user) trước khi kiểm tra quyền
   await authStore.ensureInit?.()
-console.log(authStore, '======================>');
+
+  // Debug logging
+  console.log('Router guard:', {
+    path: to.path,
+    requiresAuth: to.meta.requiresAuth,
+    requiresAdmin: to.meta.requiresAdmin,
+    isAuthenticated: authStore.isAuthenticated,
+    user: authStore.user,
+    token: authStore.token ? 'exists' : 'missing'
+  })
 
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    console.log('Redirecting to login: not authenticated')
     next({ name: 'Login', query: { redirect: to.fullPath } })
     return
   }
 
   if (to.meta.requiresAdmin && authStore.user?.role !== 'admin') {
+    console.log('Redirecting to home: not admin, role is:', authStore.user?.role)
     next({ name: 'Home' })
     return
   }
 
   if (to.meta.requiresInstructor && !['instructor', 'admin'].includes(authStore.user?.role)) {
+    console.log('Redirecting to home: not instructor')
     next({ name: 'Home' })
     return
   }

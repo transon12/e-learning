@@ -24,7 +24,7 @@
           <div class="row g-5">
             <div class="col-lg-8">
               <div class="mb-5">
-                <img class="img-fluid rounded w-100" :src="course.thumbnail || '/img/course-1.jpg'" :alt="course.title">
+                <img class="img-fluid rounded w-100" :src="resolveThumbnail(course.thumbnail)" :alt="course.title">
               </div>
               <div class="mb-5">
                 <h3 class="mb-4">About This Course</h3>
@@ -85,13 +85,26 @@
                   <h5 class="mb-0">Price:</h5>
                   <h5 class="mb-0">${{ course.isFree ? 'Free' : course.price }}</h5>
                 </div>
+                <div v-if="enrollmentStatus === 'pending'" class="alert alert-warning mb-3">
+                  <i class="fa fa-clock me-2"></i>
+                  Yêu cầu đăng ký của bạn đang chờ admin duyệt
+                </div>
+                <div v-else-if="enrollmentStatus === 'rejected'" class="alert alert-danger mb-3">
+                  <i class="fa fa-times me-2"></i>
+                  Yêu cầu đăng ký của bạn đã bị từ chối. Vui lòng liên hệ admin.
+                </div>
                 <button 
+                  v-if="enrollmentStatus !== 'approved'"
                   class="btn btn-primary w-100 py-3" 
                   @click="enrollCourse"
-                  :disabled="isEnrolled"
+                  :disabled="enrollmentStatus === 'pending'"
                 >
-                  {{ isEnrolled ? 'Enrolled' : 'Enroll Now' }}
+                  {{ enrollmentStatus === 'pending' ? 'Đang chờ duyệt...' : enrollmentStatus === 'rejected' ? 'Gửi lại yêu cầu' : 'Đăng ký khóa học' }}
                 </button>
+                <div v-else class="alert alert-success">
+                  <i class="fa fa-check me-2"></i>
+                  Bạn đã được duyệt vào khóa học này
+                </div>
               </div>
             </div>
           </div>
@@ -110,12 +123,22 @@ import { useAuthStore } from '@/stores/auth'
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const apiBaseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || ''
 
 const loading = ref(true)
 const course = ref(null)
 const isEnrolled = ref(false)
+const enrollmentStatus = ref(null)
 
 const courseId = computed(() => route.params.id)
+const normalizedBaseUrl = computed(() => apiBaseUrl ? apiBaseUrl.replace(/\/$/, '') : '')
+
+const resolveThumbnail = (thumb) => {
+  if (!thumb) return '/img/course-1.jpg'
+  if (/^https?:\/\//i.test(thumb)) return thumb
+  const path = thumb
+  return `${normalizedBaseUrl.value}${path}`
+}
 
 onMounted(async () => {
   await fetchCourse()
@@ -139,8 +162,10 @@ const checkEnrollment = async () => {
   try {
     const response = await api.get(`/enrollments/${courseId.value}/progress`)
     isEnrolled.value = response.data.success
+    enrollmentStatus.value = response.data.data?.status || null
   } catch (error) {
     isEnrolled.value = false
+    enrollmentStatus.value = null
   }
 }
 
@@ -153,7 +178,9 @@ const enrollCourse = async () => {
   try {
     await api.post(`/enrollments/${courseId.value}`)
     isEnrolled.value = true
-    alert('Successfully enrolled in course!')
+    enrollmentStatus.value = 'pending'
+    alert('Đã gửi yêu cầu đăng ký! Vui lòng chờ admin duyệt.')
+    await checkEnrollment()
   } catch (error) {
     alert(error.response?.data?.message || 'Failed to enroll')
   }

@@ -1,7 +1,10 @@
 <template>
-  <div class="sidebar">
+  <div class="sidebar" :class="{ open: isOpen }">
     <div class="sidebar-header">
       <h4 class="mb-0"><i class="fa fa-graduation-cap me-2"></i>Admin Panel</h4>
+      <button class="btn btn-sm btn-outline-light d-lg-none" @click="$emit('toggle')">
+        <i class="fa fa-times"></i>
+      </button>
     </div>
     <ul class="sidebar-menu">
       <li>
@@ -25,6 +28,16 @@
         </router-link>
       </li>
       <li>
+        <router-link to="/admin/sections" :class="{ active: $route.path === '/admin/sections' }">
+          <i class="fa fa-folder"></i><span>Sections & Lessons</span>
+        </router-link>
+      </li>
+      <li>
+        <router-link to="/admin/enrollments" :class="{ active: $route.path === '/admin/enrollments' }">
+          <i class="fa fa-user-check"></i><span>Duyệt Đăng ký</span>
+        </router-link>
+      </li>
+      <li>
         <router-link to="/admin/stats" :class="{ active: $route.path === '/admin/stats' }">
           <i class="fa fa-chart-bar"></i><span>Thống kê</span>
         </router-link>
@@ -44,6 +57,12 @@
 </template>
 
 <script setup>
+const props = defineProps({
+  isOpen: {
+    type: Boolean,
+    default: true
+  }
+})
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
@@ -69,6 +88,12 @@ const handleLogout = () => {
   top: 0;
   padding-top: 20px;
   z-index: 1000;
+  transform: translateX(0);
+  transition: transform 0.2s ease;
+}
+
+.sidebar:not(.open) {
+  transform: translateX(-100%);
 }
 
 .sidebar-header {
@@ -76,6 +101,9 @@ const handleLogout = () => {
   text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .sidebar-menu {
@@ -108,6 +136,12 @@ const handleLogout = () => {
 .sidebar-menu a i {
   width: 25px;
   margin-right: 15px;
+}
+
+@media (min-width: 992px) {
+  .sidebar {
+    transform: translateX(0) !important;
+  }
 }
 </style>
 

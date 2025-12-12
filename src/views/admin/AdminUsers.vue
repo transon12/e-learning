@@ -92,12 +92,30 @@
         </div>
 
         <!-- Pagination -->
-        <nav v-if="pagination.pages > 1">
+        <nav v-if="pagination.pages > 1" class="mt-4">
+          <div class="mb-2 text-muted text-center">
+            Hiển thị {{ (pagination.page - 1) * pagination.limit + 1 }} - {{ Math.min(pagination.page * pagination.limit, pagination.total) }} trong tổng số {{ pagination.total }} học viên
+          </div>
           <ul class="pagination justify-content-center">
-            <li v-for="page in pagination.pages" :key="page" class="page-item" :class="{ active: page === pagination.page }">
-              <a class="page-link" href="#" @click.prevent="goToPage(page)">{{ page }}</a>
+            <li class="page-item" :class="{ disabled: pagination.page === 1 }">
+              <a class="page-link" href="#" @click.prevent="goToPage(pagination.page - 1)">Trước</a>
+            </li>
+            <li v-for="page in visiblePages" :key="page" class="page-item" :class="{ active: page === pagination.page, disabled: page === '...' }">
+              <a v-if="page !== '...'" class="page-link" href="#" @click.prevent="goToPage(page)">{{ page }}</a>
+              <span v-else class="page-link">{{ page }}</span>
+            </li>
+            <li class="page-item" :class="{ disabled: pagination.page === pagination.pages }">
+              <a class="page-link" href="#" @click.prevent="goToPage(pagination.page + 1)">Sau</a>
             </li>
           </ul>
+          <div class="text-center mt-2">
+            <select v-model.number="pagination.limit" class="form-select form-select-sm d-inline-block" style="width: auto;" @change="changePageSize">
+              <option :value="10">10 / trang</option>
+              <option :value="20">20 / trang</option>
+              <option :value="50">50 / trang</option>
+              <option :value="100">100 / trang</option>
+            </select>
+          </div>
         </nav>
       </div>
     </div>
@@ -137,7 +155,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import api from '@/services/api'
 import { Modal } from 'bootstrap'
 
@@ -177,8 +195,46 @@ const loadUsers = async () => {
   }
 }
 
+const visiblePages = computed(() => {
+  const pages = []
+  const totalPages = pagination.value.pages
+  const currentPage = pagination.value.page
+
+  if (totalPages <= 7) {
+    // Hiển thị tất cả nếu <= 7 trang
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i)
+    }
+  } else {
+    // Hiển thị với ellipsis
+    if (currentPage <= 3) {
+      for (let i = 1; i <= 5; i++) pages.push(i)
+      pages.push('...')
+      pages.push(totalPages)
+    } else if (currentPage >= totalPages - 2) {
+      pages.push(1)
+      pages.push('...')
+      for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i)
+    } else {
+      pages.push(1)
+      pages.push('...')
+      for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i)
+      pages.push('...')
+      pages.push(totalPages)
+    }
+  }
+  return pages
+})
+
 const goToPage = (page) => {
+  if (page < 1 || page > pagination.value.pages || page === '...') return
   pagination.value.page = page
+  loadUsers()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const changePageSize = () => {
+  pagination.value.page = 1
   loadUsers()
 }
 

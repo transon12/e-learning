@@ -28,68 +28,89 @@
 
           <!-- Main Content -->
           <div class="col-lg-9">
-            <div class="mb-4">
-              <h2>{{ lesson.title }}</h2>
-              <p class="text-muted">{{ lesson.description }}</p>
+            <div v-if="authStore.isAuthenticated && enrollmentStatus !== 'approved'" class="alert alert-warning mb-4">
+              <i class="fa fa-exclamation-triangle me-2"></i>
+              <span v-if="enrollmentStatus === 'pending'">
+                Bạn chưa được duyệt vào khóa học này. Vui lòng chờ admin duyệt.
+              </span>
+              <span v-else-if="enrollmentStatus === 'rejected'">
+                Yêu cầu đăng ký của bạn đã bị từ chối. Vui lòng liên hệ admin.
+              </span>
+              <span v-else>
+                Bạn cần đăng ký khóa học để xem nội dung này.
+              </span>
+              <router-link v-if="courseId" :to="`/course/${courseId}`" class="btn btn-sm btn-primary ms-2">
+                Đăng ký khóa học
+              </router-link>
             </div>
-
-            <!-- Video Player -->
-            <div v-if="lesson.videoUrl" class="video-container mb-4">
-              <iframe 
-                v-if="lesson.videoType === 'youtube' || lesson.videoType === 'vimeo'"
-                :src="lesson.videoUrl" 
-                frameborder="0" 
-                allowfullscreen
-                class="w-100 h-100 position-absolute"
-              ></iframe>
-              <video 
-                v-else-if="lesson.videoType === 'local'"
-                :src="lesson.videoUrl" 
-                controls 
-                class="w-100"
-              ></video>
+            <div v-else-if="!authStore.isAuthenticated" class="alert alert-info mb-4">
+              <i class="fa fa-info-circle me-2"></i>
+              Vui lòng đăng nhập và đăng ký khóa học để xem nội dung này.
             </div>
+            <div v-if="canViewLesson">
+              <div class="mb-4">
+                <h2>{{ lesson.title }}</h2>
+                <p class="text-muted">{{ lesson.description }}</p>
+              </div>
 
-            <!-- Audio Player -->
-            <div v-if="lesson.file_audio_path" class="mb-4">
-              <audio :src="`/uploads/${lesson.file_audio_path}`" controls class="w-100"></audio>
-            </div>
+              <!-- Media (ưu tiên 1 loại: youtube/vimeo -> video file -> audio) -->
+              <div v-if="videoSource.src" class="video-container mb-4">
+                <iframe 
+                  v-if="videoSource.type === 'embed'"
+                  :src="videoSource.src" 
+                  frameborder="0" 
+                  allowfullscreen
+                  class="w-100 h-100 position-absolute"
+                ></iframe>
+                <video 
+                  v-else-if="videoSource.type === 'file'"
+                  :src="videoSource.src" 
+                  controls 
+                  class="w-100"
+                ></video>
+              </div>
 
-            <!-- PDF Viewer -->
-            <div v-if="lesson.file_pdf_path" class="mb-4">
-              <iframe 
-                :src="`/uploads/${lesson.file_pdf_path}`" 
-                class="w-100" 
-                style="height: 600px;"
-              ></iframe>
-            </div>
+              <!-- Audio Player (chỉ khi không có video) -->
+              <div v-else-if="audioSource" class="mb-4">
+                <audio :src="audioSource" controls class="w-100"></audio>
+              </div>
 
-            <!-- Content -->
-            <div v-if="lesson.content" class="mb-4" v-html="lesson.content"></div>
+              <!-- PDF Viewer (hiển thị cùng media) -->
+              <div v-if="lesson.file_pdf_path" class="mb-4">
+                <iframe 
+                  :src="`${normalizedBaseUrl}${lesson.file_pdf_path.startsWith('/') ? '' : '/'}${lesson.file_pdf_path}`" 
+                  class="w-100" 
+                  style="height: 600px;"
+                ></iframe>
+              </div>
 
-            <!-- Navigation -->
-            <div class="d-flex justify-content-between mt-4">
-              <button 
-                class="btn btn-primary" 
-                @click="goToPrevious"
-                :disabled="!previousLesson"
-              >
-                <i class="fa fa-arrow-left me-2"></i>Previous
-              </button>
-              <button 
-                class="btn btn-success" 
-                @click="markComplete"
-                v-if="authStore.isAuthenticated"
-              >
-                <i class="fa fa-check me-2"></i>Mark Complete
-              </button>
-              <button 
-                class="btn btn-primary" 
-                @click="goToNext"
-                :disabled="!nextLesson"
-              >
-                Next<i class="fa fa-arrow-right ms-2"></i>
-              </button>
+              <!-- Content -->
+              <div v-if="lesson.content" class="mb-4" v-html="lesson.content"></div>
+
+              <!-- Navigation -->
+              <div class="d-flex justify-content-between mt-4">
+                <button 
+                  class="btn btn-primary" 
+                  @click="goToPrevious"
+                  :disabled="!previousLesson"
+                >
+                  <i class="fa fa-arrow-left me-2"></i>Previous
+                </button>
+                <button 
+                  class="btn btn-success" 
+                  @click="markComplete"
+                  v-if="authStore.isAuthenticated"
+                >
+                  <i class="fa fa-check me-2"></i>Mark Complete
+                </button>
+                <button 
+                  class="btn btn-primary" 
+                  @click="goToNext"
+                  :disabled="!nextLesson"
+                >
+                  Next<i class="fa fa-arrow-right ms-2"></i>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -99,7 +120,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
@@ -107,11 +128,64 @@ import { useAuthStore } from '@/stores/auth'
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const apiBaseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || ''
 
 const loading = ref(true)
 const lesson = ref(null)
 const sections = ref([])
 const allLessons = ref([])
+const enrollmentStatus = ref(null)
+const courseId = ref(null)
+const canViewLesson = computed(() => {
+  // Cho phép xem nếu bài học free/preview
+  if (lesson.value?.isPreview) return true
+  // Còn lại: phải đăng nhập và đã được duyệt
+  return authStore.isAuthenticated && enrollmentStatus.value === 'approved'
+})
+
+// Chuẩn hóa base URL tránh lỗi trùng /
+const normalizedBaseUrl = computed(() => {
+  return apiBaseUrl ? apiBaseUrl.replace(/\/$/, '') : ''
+})
+
+// Ưu tiên hiển thị 1 loại media duy nhất: YouTube/Vimeo -> video file -> audio
+const videoSource = computed(() => {
+  if (!lesson.value) return { type: null, src: null }
+
+  // Youtube/Vimeo embed
+  if (lesson.value.videoType === 'youtube' || lesson.value.videoType === 'vimeo') {
+    return { type: 'embed', src: lesson.value.videoUrl }
+  }
+
+  // Video file đã upload
+  if (lesson.value.file_video_path) {
+    const path = lesson.value.file_video_path.startsWith('/')
+      ? lesson.value.file_video_path
+      : `${lesson.value.file_video_path}`
+    return { type: 'file', src: `${normalizedBaseUrl.value}${path}` }
+  }
+
+  // Video local lưu ở videoUrl
+  if (lesson.value.videoType === 'local' && lesson.value.videoUrl) {
+    const path = lesson.value.videoUrl.startsWith('/')
+      ? lesson.value.videoUrl
+      : `${lesson.value.videoUrl}`
+    return { type: 'file', src: `${normalizedBaseUrl.value}${path}` }
+  }
+
+  return { type: null, src: null }
+})
+
+const audioSource = computed(() => {
+  // Chỉ hiển thị audio nếu KHÔNG có video
+  if (videoSource.value.src) return null
+  if (!lesson.value?.file_audio_path) return null
+
+  const path = lesson.value.file_audio_path.startsWith('/')
+    ? lesson.value.file_audio_path
+    : `${lesson.value.file_audio_path}`
+  return `${normalizedBaseUrl.value}${path}`
+})
 
 const currentIndex = computed(() => {
   return allLessons.value.findIndex(l => l.id === parseInt(route.params.id))
@@ -132,10 +206,25 @@ onMounted(async () => {
   await fetchSections()
 })
 
+// Refetch when route changes (Next/Previous)
+watch(() => route.params.id, async (newId) => {
+  if (!newId) return
+  loading.value = true
+  await fetchLesson()
+  await fetchSections()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+})
+
 const fetchLesson = async () => {
   try {
     const response = await api.get(`/lessons/${route.params.id}`)
     lesson.value = response.data.data
+    courseId.value = lesson.value.course_id
+    
+    // Check enrollment status if user is authenticated
+    if (authStore.isAuthenticated && courseId.value) {
+      await checkEnrollment()
+    }
     
     // Fetch course sections to get all lessons
     if (lesson.value.course_id) {
@@ -164,6 +253,20 @@ const fetchSections = async () => {
   }
 }
 
+const checkEnrollment = async () => {
+  if (!courseId.value || !authStore.isAuthenticated) {
+    enrollmentStatus.value = null
+    return
+  }
+  
+  try {
+    const response = await api.get(`/enrollments/${courseId.value}/progress`)
+    enrollmentStatus.value = response.data.data?.status || null
+  } catch (error) {
+    enrollmentStatus.value = null
+  }
+}
+
 const goToLesson = (lessonId) => {
   router.push(`/lesson/${lessonId}`)
   fetchLesson()
@@ -183,6 +286,10 @@ const goToNext = () => {
 
 const markComplete = async () => {
   if (!lesson.value?.course_id) return
+  if (!canViewLesson.value) {
+    alert('Bạn cần được duyệt vào khóa học trước khi đánh dấu hoàn thành.')
+    return
+  }
   
   try {
     await api.post(`/enrollments/${lesson.value.course_id}/complete-lesson/${lesson.value.id}`)

@@ -27,6 +27,11 @@ const Enrollment = sequelize.define('Enrollment', {
         type: DataTypes.DECIMAL(5, 2),
         defaultValue: 0.00,
         comment: 'percentage 0-100'
+    },
+    status: {
+        type: DataTypes.ENUM('pending', 'approved', 'rejected'),
+        defaultValue: 'pending',
+        allowNull: false
     }
 }, {
     tableName: 'enrollments',

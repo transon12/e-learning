@@ -1,6 +1,6 @@
 const express = require('express');
-const { Enrollment, CompletedLesson, Course, Lesson, CourseSection } = require('../models');
-const { protect } = require('../middleware/auth');
+const { Enrollment, CompletedLesson, Course, Lesson, CourseSection, User } = require('../models');
+const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -33,21 +33,22 @@ router.post('/:courseId', protect, async (req, res) => {
             });
         }
 
-        // Create enrollment
+        // Create enrollment with pending status
         const enrollment = await Enrollment.create({
             user_id: req.user.id,
             course_id: req.params.courseId,
-            progress: 0
+            progress: 0,
+            status: 'pending'
         });
 
-        // Update course enrolled count
-        await course.increment('enrolledCount');
+        // Do not increase enrolledCount until approved
 
         res.status(201).json({
             success: true,
-            message: 'Successfully enrolled in course',
+            message: 'Enrollment request submitted. Waiting for admin approval.',
             data: {
                 course: course.id,
+                status: 'pending',
                 enrolledAt: enrollment.createdAt
             }
         });
@@ -76,6 +77,14 @@ router.post('/:courseId/complete-lesson/:lessonId', protect, async (req, res) =>
             return res.status(404).json({
                 success: false,
                 message: 'Not enrolled in this course'
+            });
+        }
+
+        // Must be approved to complete lessons
+        if (enrollment.status !== 'approved') {
+            return res.status(403).json({
+                success: false,
+                message: `Enrollment is ${enrollment.status}. Please wait for admin approval.`
             });
         }
 
@@ -172,6 +181,7 @@ router.get('/:courseId/progress', protect, async (req, res) => {
             success: true,
             data: {
                 progress: enrollment.progress,
+                status: enrollment.status,
                 completedLessons: completedLessonIds,
                 enrolledAt: enrollment.createdAt
             }
@@ -186,4 +196,85 @@ router.get('/:courseId/progress', protect, async (req, res) => {
 });
 
 module.exports = router;
+
+// @route   GET /api/enrollments
+// @desc    Get enrollment requests (Admin)
+// @access  Private/Admin
+router.get('/', protect, authorize('admin'), async (req, res) => {
+    try {
+        const { status, course_id, user_id } = req.query;
+        const where = {};
+        if (status) where.status = status;
+        if (course_id) where.course_id = course_id;
+        if (user_id) where.user_id = user_id;
+
+        const enrollments = await Enrollment.findAll({
+            where,
+            include: [
+                { model: User, as: 'user', attributes: ['id', 'username', 'email', 'profile_firstName', 'profile_lastName'] },
+                { model: Course, as: 'course', attributes: ['id', 'title', 'category'] }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
+
+        res.json({ success: true, data: enrollments });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// @route   PUT /api/enrollments/:enrollmentId/approve
+// @desc    Approve enrollment request
+// @access  Private/Admin
+router.put('/:enrollmentId/approve', protect, authorize('admin'), async (req, res) => {
+    try {
+        const enrollment = await Enrollment.findByPk(req.params.enrollmentId, { include: [{ model: Course, as: 'course' }] });
+        if (!enrollment) {
+            return res.status(404).json({ success: false, message: 'Enrollment not found' });
+        }
+        if (enrollment.status === 'approved') {
+            return res.status(400).json({ success: false, message: 'Enrollment already approved' });
+        }
+
+        const wasPending = enrollment.status === 'pending';
+        await enrollment.update({ status: 'approved' });
+        if (wasPending && enrollment.course) {
+            await enrollment.course.increment('enrolledCount');
+        }
+
+        res.json({ success: true, message: 'Enrollment approved successfully', data: enrollment });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// @route   PUT /api/enrollments/:enrollmentId/reject
+// @desc    Reject enrollment request
+// @access  Private/Admin
+router.put('/:enrollmentId/reject', protect, authorize('admin'), async (req, res) => {
+    try {
+        const enrollment = await Enrollment.findByPk(req.params.enrollmentId);
+        if (!enrollment) {
+            return res.status(404).json({ success: false, message: 'Enrollment not found' });
+        }
+        if (enrollment.status === 'rejected') {
+            return res.status(400).json({ success: false, message: 'Enrollment already rejected' });
+        }
+
+        if (enrollment.status === 'approved') {
+            const course = await Course.findByPk(enrollment.course_id);
+            if (course && course.enrolledCount > 0) {
+                await course.decrement('enrolledCount');
+            }
+        }
+
+        await enrollment.update({ status: 'rejected' });
+        res.json({ success: true, message: 'Enrollment rejected', data: enrollment });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
 

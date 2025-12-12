@@ -44,6 +44,40 @@ router.get('/course/:courseId', async (req, res) => {
     }
 });
 
+// @route   GET /api/lessons
+// @desc    Get all lessons (with optional filters)
+// @access  Public
+router.get('/', async (req, res) => {
+    try {
+        const { course, limit = 100, offset = 0 } = req.query;
+        const where = {};
+
+        if (course) {
+            where.course_id = course;
+        }
+
+        const lessons = await Lesson.findAll({
+            where,
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+            order: [['order_index', 'ASC'], ['createdAt', 'DESC']],
+            attributes: ['id', 'title', 'slug', 'description', 'duration', 'order_index', 'status', 'course_id', 'section_id']
+        });
+
+        res.json({
+            success: true,
+            data: lessons,
+            total: await Lesson.count({ where })
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+});
+
 // @route   GET /api/lessons/:id
 // @desc    Get single lesson by ID or slug
 // @access  Public
@@ -126,6 +160,25 @@ router.post('/', protect, authorize('instructor', 'admin'), async (req, res) => 
             section_id: section_id || null,
             order_index: order_index || 0
         });
+
+        // Thêm vào bảng section_lessons nếu có section_id
+        if (section_id) {
+            const { SectionLesson } = require('../models');
+            try {
+                await SectionLesson.findOrCreate({
+                    where: {
+                        section_id: section_id,
+                        lesson_id: lesson.id
+                    },
+                    defaults: {
+                        order_index: order_index || 0
+                    }
+                });
+            } catch (error) {
+                console.error('Error adding to section_lessons:', error);
+                // Không throw error, vì lesson đã được tạo thành công
+            }
+        }
 
         // Update course total lessons
         const lessonCount = await Lesson.count({ where: { course_id: courseId } });

@@ -7,6 +7,26 @@ const { Lesson, Course } = require('../models');
 
 const router = express.Router();
 
+// Helper to update course thumbnail
+async function updateCourseThumbnail(courseId, fileData) {
+    const course = await Course.findByPk(courseId);
+    if (!course) throw new Error('Course not found');
+
+    // Xóa file cũ nếu có và không phải default
+    if (course.thumbnail && course.thumbnail.startsWith('/uploads')) {
+        const oldPath = path.join(__dirname, '..', course.thumbnail);
+        if (fs.existsSync(oldPath)) {
+            fs.unlinkSync(oldPath);
+        }
+    }
+
+    const relPath = fileData.path.replace(path.join(__dirname, '..'), '');
+    await course.update({
+        thumbnail: relPath.startsWith('/uploads') ? relPath : `${relPath}`
+    });
+    return course;
+}
+
 // Helper function to update lesson file
 async function updateLessonFile(lessonId, fileType, fileData) {
     const lesson = await Lesson.findByPk(lessonId);
@@ -34,7 +54,7 @@ async function updateLessonFile(lessonId, fileType, fileData) {
 
     // If video, also update videoUrl
     if (fileType === 'video' && !lesson.videoUrl) {
-        updateData.videoUrl = `/uploads/${fileData.path.split('uploads')[1].replace(/\\/g, '/')}`;
+        updateData.videoUrl = `${fileData.path.split('uploads')[1].replace(/\\/g, '/')}`;
         updateData.videoType = 'local';
     }
 
@@ -325,6 +345,55 @@ router.delete('/lesson/:lessonId/file/:fileType', protect, authorize('instructor
         res.status(500).json({
             success: false,
             message: 'Lỗi server khi xóa file'
+        });
+    }
+});
+
+// @route POST /api/upload/course/:courseId/avatar
+router.post('/course/:courseId/avatar', protect, authorize('instructor', 'admin'), uploadSingle('avatar'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'Không có file được upload'
+            });
+        }
+
+        const course = await Course.findByPk(req.params.courseId);
+        if (!course) {
+            fs.unlinkSync(req.file.path);
+            return res.status(404).json({
+                success: false,
+                message: 'Khóa học không tồn tại'
+            });
+        }
+
+        // Instructor hoặc admin
+        if (course.instructor_id !== req.user.id && req.user.role !== 'admin') {
+            fs.unlinkSync(req.file.path);
+            return res.status(403).json({
+                success: false,
+                message: 'Không có quyền upload ảnh cho khóa học này'
+            });
+        }
+
+        await updateCourseThumbnail(req.params.courseId, req.file);
+
+        res.json({
+            success: true,
+            message: 'Upload ảnh đại diện thành công',
+            data: {
+                thumbnail: `${req.file.path.split('uploads')[1].replace(/\\/g, '')}`
+            }
+        });
+    } catch (error) {
+        if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+        }
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi server khi upload ảnh đại diện'
         });
     }
 });

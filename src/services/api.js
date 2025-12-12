@@ -27,11 +27,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Clear auth state
       localStorage.removeItem('token')
-      // Tránh reload khi đang ở trang login (ví dụ nhập sai)
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login'
-      }
+      localStorage.removeItem('user')
+      // Clear auth store (will be handled by router guard)
+      // Don't redirect here - let router guard handle it
     }
     return Promise.reject(error)
   }
