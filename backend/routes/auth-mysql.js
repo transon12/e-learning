@@ -61,14 +61,21 @@ router.post('/register', [
         // Generate token
         const token = generateToken(user.id);
 
+        // Format user for frontend
+        const userData = user.toJSON();
+        delete userData.password; // Ensure password is not included
+
         res.status(201).json({
             success: true,
             token,
             user: {
-                id: user.id,
-                username: user.username,
-                email: user.email,
-                role: user.role
+                id: userData.id,
+                username: userData.username,
+                email: userData.email,
+                role: userData.role,
+                profileFirstName: userData.profileFirstName,
+                profileLastName: userData.profileLastName,
+                profileAvatar: userData.profile_avatar
             }
         });
     } catch (error) {
@@ -122,14 +129,21 @@ router.post('/login', [
         // Generate token
         const token = generateToken(user.id);
 
+        // Format user for frontend
+        const userData = user.toJSON();
+        delete userData.password; // Ensure password is not included
+
         res.json({
             success: true,
             token,
             user: {
-                id: user.id,
-                username: user.username,
-                email: user.email,
-                role: user.role
+                id: userData.id,
+                username: userData.username,
+                email: userData.email,
+                role: userData.role,
+                profileFirstName: userData.profileFirstName,
+                profileLastName: userData.profileLastName,
+                profileAvatar: userData.profile_avatar
             }
         });
     } catch (error) {
@@ -160,9 +174,21 @@ router.get('/me', protect, async (req, res) => {
             }]
         });
 
+        // Format user for frontend
+        const userData = user.toJSON();
+        if (userData.enrollments) {
+            userData.enrollments = userData.enrollments.map(enrollment => {
+                const enrollmentData = enrollment.toJSON();
+                if (enrollmentData.course) {
+                    enrollmentData.course = enrollmentData.course.toJSON();
+                }
+                return enrollmentData;
+            });
+        }
+
         res.json({
             success: true,
-            user
+            user: userData
         });
     } catch (error) {
         console.error(error);

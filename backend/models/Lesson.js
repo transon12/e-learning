@@ -43,15 +43,18 @@ const Lesson = sequelize.define('Lesson', {
     },
     videoUrl: {
         type: DataTypes.STRING(500),
-        allowNull: true
+        allowNull: true,
+        field: 'video_url'
     },
     videoType: {
         type: DataTypes.ENUM('youtube', 'vimeo', 'local', 'external'),
-        defaultValue: 'youtube'
+        defaultValue: 'youtube',
+        field: 'video_type'
     },
-    duration: {
+    durationMinutes: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
+        field: 'duration_minutes',
         comment: 'in minutes'
     },
     content: {
@@ -60,72 +63,97 @@ const Lesson = sequelize.define('Lesson', {
     },
     isPreview: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false
+        defaultValue: false,
+        field: 'is_preview'
     },
     isLocked: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false
+        defaultValue: false,
+        field: 'is_locked'
     },
     viewCount: {
         type: DataTypes.INTEGER,
-        defaultValue: 0
+        defaultValue: 0,
+        field: 'view_count'
     },
     status: {
         type: DataTypes.ENUM('draft', 'published'),
         defaultValue: 'draft'
     },
-    // Uploaded files
+    // Uploaded files - keep snake_case for frontend compatibility
     file_video_filename: {
         type: DataTypes.STRING(255),
-        allowNull: true
+        allowNull: true,
+        field: 'file_video_filename'
     },
     file_video_path: {
         type: DataTypes.STRING(500),
-        allowNull: true
+        allowNull: true,
+        field: 'file_video_path'
     },
     file_video_size: {
         type: DataTypes.BIGINT,
-        allowNull: true
+        allowNull: true,
+        field: 'file_video_size'
     },
     file_video_mimetype: {
         type: DataTypes.STRING(100),
-        allowNull: true
+        allowNull: true,
+        field: 'file_video_mimetype'
     },
     file_audio_filename: {
         type: DataTypes.STRING(255),
-        allowNull: true
+        allowNull: true,
+        field: 'file_audio_filename'
     },
     file_audio_path: {
         type: DataTypes.STRING(500),
-        allowNull: true
+        allowNull: true,
+        field: 'file_audio_path'
     },
     file_audio_size: {
         type: DataTypes.BIGINT,
-        allowNull: true
+        allowNull: true,
+        field: 'file_audio_size'
     },
     file_audio_mimetype: {
         type: DataTypes.STRING(100),
-        allowNull: true
+        allowNull: true,
+        field: 'file_audio_mimetype'
     },
     file_pdf_filename: {
         type: DataTypes.STRING(255),
-        allowNull: true
+        allowNull: true,
+        field: 'file_pdf_filename'
     },
     file_pdf_path: {
         type: DataTypes.STRING(500),
-        allowNull: true
+        allowNull: true,
+        field: 'file_pdf_path'
     },
     file_pdf_size: {
         type: DataTypes.BIGINT,
-        allowNull: true
+        allowNull: true,
+        field: 'file_pdf_size'
     },
     file_pdf_mimetype: {
         type: DataTypes.STRING(100),
-        allowNull: true
+        allowNull: true,
+        field: 'file_pdf_mimetype'
     }
 }, {
     tableName: 'lessons',
-    timestamps: true
+    timestamps: true,
+    getterMethods: {
+        duration() {
+            return this.durationMinutes;
+        }
+    },
+    setterMethods: {
+        duration(value) {
+            this.setDataValue('durationMinutes', value);
+        }
+    }
 });
 
 // Generate slug
@@ -147,8 +175,30 @@ Lesson.beforeUpdate((lesson) => {
 
 // Instance method to increment view
 Lesson.prototype.incrementView = async function() {
-    this.viewCount += 1;
+    this.viewCount = (this.viewCount || 0) + 1;
     return this.save();
+};
+
+// Override toJSON to keep file fields in snake_case for frontend compatibility
+Lesson.prototype.toJSON = function() {
+    const values = { ...this.get() };
+    // Sequelize with underscored: true will convert camelCase to snake_case
+    // But we need to ensure file fields stay in snake_case for frontend
+    // The field mapping already handles this, but we ensure it in toJSON
+    const fileFields = [
+        'file_video_filename', 'file_video_path', 'file_video_size', 'file_video_mimetype',
+        'file_audio_filename', 'file_audio_path', 'file_audio_size', 'file_audio_mimetype',
+        'file_pdf_filename', 'file_pdf_path', 'file_pdf_size', 'file_pdf_mimetype'
+    ];
+    
+    // Ensure file fields are in snake_case (they should already be due to field mapping)
+    fileFields.forEach(field => {
+        if (values[field] !== undefined) {
+            // Field is already in snake_case due to field mapping
+        }
+    });
+    
+    return values;
 };
 
 // Associations

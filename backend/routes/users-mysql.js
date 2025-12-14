@@ -22,9 +22,12 @@ router.get('/profile', protect, async (req, res) => {
             }]
         });
 
+        // Format user for frontend
+        const userData = user.toJSON();
+
         res.json({
             success: true,
-            data: user
+            data: userData
         });
     } catch (error) {
         console.error(error);
@@ -50,7 +53,16 @@ router.put('/profile', protect, async (req, res) => {
         const updateData = { ...otherFields };
         if (profile) {
             Object.keys(profile).forEach(key => {
-                updateData[`profile_${key}`] = profile[key];
+                // Map camelCase to snake_case field names
+                const fieldMap = {
+                    'firstName': 'profileFirstName',
+                    'lastName': 'profileLastName',
+                    'avatar': 'profile_avatar',
+                    'bio': 'profile_bio',
+                    'phone': 'profile_phone'
+                };
+                const fieldName = fieldMap[key] || `profile_${key}`;
+                updateData[fieldName] = profile[key];
             });
         }
 
@@ -62,9 +74,12 @@ router.put('/profile', protect, async (req, res) => {
             attributes: { exclude: ['password'] }
         });
 
+        // Format user for frontend
+        const userData = user.toJSON();
+
         res.json({
             success: true,
-            data: user
+            data: userData
         });
     } catch (error) {
         console.error(error);
@@ -91,15 +106,29 @@ router.get('/enrolled-courses', protect, async (req, res) => {
                     include: [{
                         model: User,
                         as: 'instructor',
-                        attributes: ['id', 'username', 'profile_firstName', 'profile_lastName']
+                        attributes: ['id', 'username', 'profileFirstName', 'profileLastName']
                     }]
                 }]
             }]
         });
 
+        // Format enrollments and courses for frontend
+        const formattedEnrollments = (user.enrollments || []).map(enrollment => {
+            const enrollmentData = enrollment.toJSON();
+            if (enrollmentData.course) {
+                const courseData = enrollmentData.course.toJSON();
+                // Format course level if present
+                if (courseData.level) {
+                    courseData.level = courseData.level.charAt(0).toUpperCase() + courseData.level.slice(1);
+                }
+                enrollmentData.course = courseData;
+            }
+            return enrollmentData;
+        });
+
         res.json({
             success: true,
-            data: user.enrollments || []
+            data: formattedEnrollments
         });
     } catch (error) {
         console.error(error);

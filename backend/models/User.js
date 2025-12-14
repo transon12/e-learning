@@ -35,13 +35,15 @@ const User = sequelize.define('User', {
         type: DataTypes.ENUM('student', 'instructor', 'admin'),
         defaultValue: 'student'
     },
-    profile_firstName: {
+    profileFirstName: {
         type: DataTypes.STRING(50),
-        allowNull: true
+        allowNull: true,
+        field: 'profile_first_name'
     },
-    profile_lastName: {
+    profileLastName: {
         type: DataTypes.STRING(50),
-        allowNull: true
+        allowNull: true,
+        field: 'profile_last_name'
     },
     profile_avatar: {
         type: DataTypes.STRING(255),

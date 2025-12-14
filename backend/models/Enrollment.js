@@ -32,10 +32,17 @@ const Enrollment = sequelize.define('Enrollment', {
         type: DataTypes.ENUM('pending', 'approved', 'rejected'),
         defaultValue: 'pending',
         allowNull: false
+    },
+    enrolledAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+        field: 'enrolled_at'
     }
 }, {
     tableName: 'enrollments',
     timestamps: true,
+    createdAt: 'enrolledAt',
+    updatedAt: 'updatedAt',
     indexes: [
         {
             unique: true,
@@ -65,10 +72,17 @@ const CompletedLesson = sequelize.define('CompletedLesson', {
             model: 'lessons',
             key: 'id'
         }
+    },
+    completedAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+        field: 'completed_at'
     }
 }, {
     tableName: 'completed_lessons',
     timestamps: true,
+    createdAt: 'completedAt',
+    updatedAt: false,
     indexes: [
         {
             unique: true,

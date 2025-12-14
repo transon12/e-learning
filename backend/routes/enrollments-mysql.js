@@ -49,7 +49,7 @@ router.post('/:courseId', protect, async (req, res) => {
             data: {
                 course: course.id,
                 status: 'pending',
-                enrolledAt: enrollment.createdAt
+                enrolledAt: enrollment.enrolledAt || enrollment.createdAt
             }
         });
     } catch (error) {
@@ -183,7 +183,7 @@ router.get('/:courseId/progress', protect, async (req, res) => {
                 progress: enrollment.progress,
                 status: enrollment.status,
                 completedLessons: completedLessonIds,
-                enrolledAt: enrollment.createdAt
+                enrolledAt: enrollment.enrolledAt || enrollment.createdAt
             }
         });
     } catch (error) {
@@ -214,7 +214,7 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
                 { model: User, as: 'user', attributes: ['id', 'username', 'email', 'profile_firstName', 'profile_lastName'] },
                 { model: Course, as: 'course', attributes: ['id', 'title', 'category'] }
             ],
-            order: [['createdAt', 'DESC']]
+            order: [['enrolledAt', 'DESC']]
         });
 
         res.json({ success: true, data: enrollments });

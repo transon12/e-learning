@@ -63,7 +63,7 @@
                     <div class="user-avatar me-2">{{ enrollment.user?.username?.charAt(0).toUpperCase() || 'U' }}</div>
                     <div>
                       <div class="fw-bold">{{ enrollment.user?.username || 'N/A' }}</div>
-                      <small class="text-muted">{{ enrollment.user?.profile_firstName }} {{ enrollment.user?.profile_lastName }}</small>
+                      <small class="text-muted">{{ enrollment.user?.profileFirstName || enrollment.user?.profile_firstName }} {{ enrollment.user?.profileLastName || enrollment.user?.profile_lastName }}</small>
                     </div>
                   </div>
                 </td>
@@ -75,7 +75,7 @@
                 </td>
                 <td>{{ enrollment.course?.category || 'N/A' }}</td>
                 <td>{{ enrollment.progress || 0 }}%</td>
-                <td>{{ formatDate(enrollment.createdAt) }}</td>
+                <td>{{ formatDate(enrollment.enrolledAt || enrollment.createdAt) }}</td>
                 <td>
                   <span :class="getStatusBadgeClass(enrollment.status)">
                     {{ getStatusLabel(enrollment.status) }}

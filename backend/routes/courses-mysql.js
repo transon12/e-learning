@@ -23,7 +23,8 @@ router.get('/', async (req, res) => {
         }
         
         if (level) {
-            where.level = level;
+            // Normalize level to lowercase for database query
+            where.level = level.toLowerCase();
         }
         
         if (search) {
@@ -45,13 +46,22 @@ router.get('/', async (req, res) => {
             order: [['createdAt', 'DESC']]
         });
 
+        // Format courses for frontend (capitalize level)
+        const formattedCourses = courses.map(course => {
+            const courseData = course.toJSON();
+            if (courseData.level) {
+                courseData.level = courseData.level.charAt(0).toUpperCase() + courseData.level.slice(1);
+            }
+            return courseData;
+        });
+
         res.json({
             success: true,
-            count: courses.length,
+            count: formattedCourses.length,
             total: count,
             page: parseInt(page),
             pages: Math.ceil(count / limit),
-            data: courses
+            data: formattedCourses
         });
     } catch (error) {
         console.error(error);
@@ -107,9 +117,27 @@ router.get('/:id', async (req, res) => {
             });
         }
 
+        // Format course for frontend (capitalize level)
+        const courseData = course.toJSON();
+        if (courseData.level) {
+            courseData.level = courseData.level.charAt(0).toUpperCase() + courseData.level.slice(1);
+        }
+        // Format nested lessons if present
+        if (courseData.sections) {
+            courseData.sections = courseData.sections.map(section => {
+                if (section.lessons) {
+                    section.lessons = section.lessons.map(lesson => {
+                        const lessonData = lesson.toJSON ? lesson.toJSON() : lesson;
+                        return lessonData;
+                    });
+                }
+                return section;
+            });
+        }
+
         res.json({
             success: true,
-            data: course
+            data: courseData
         });
     } catch (error) {
         console.error(error);
@@ -126,6 +154,10 @@ router.get('/:id', async (req, res) => {
 router.post('/', protect, authorize('instructor', 'admin'), async (req, res) => {
     try {
         req.body.instructor_id = req.user.id;
+        // Normalize level if provided (frontend sends 'Beginner', DB needs 'beginner')
+        if (req.body.level) {
+            req.body.level = req.body.level.toLowerCase();
+        }
         const course = await Course.create(req.body);
 
         res.status(201).json({
@@ -163,6 +195,10 @@ router.put('/:id', protect, authorize('instructor', 'admin'), async (req, res) =
             });
         }
 
+        // Normalize level if provided
+        if (req.body.level) {
+            req.body.level = req.body.level.toLowerCase();
+        }
         await course.update(req.body);
 
         res.json({

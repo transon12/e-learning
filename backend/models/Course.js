@@ -23,7 +23,8 @@ const Course = sequelize.define('Course', {
     },
     shortDescription: {
         type: DataTypes.STRING(200),
-        allowNull: true
+        allowNull: true,
+        field: 'short_description'
     },
     instructor_id: {
         type: DataTypes.INTEGER,
@@ -50,21 +51,23 @@ const Course = sequelize.define('Course', {
         defaultValue: true
     },
     level: {
-        type: DataTypes.ENUM('Beginner', 'Intermediate', 'Advanced'),
-        defaultValue: 'Beginner'
+        type: DataTypes.ENUM('beginner', 'intermediate', 'advanced'),
+        defaultValue: 'beginner'
     },
     language: {
         type: DataTypes.STRING(50),
-        defaultValue: 'English'
+        defaultValue: 'english'
     },
-    duration: {
-        type: DataTypes.DECIMAL(5, 2),
+    durationHours: {
+        type: DataTypes.DECIMAL(6, 2),
         defaultValue: 0.00,
+        field: 'duration_hours',
         comment: 'in hours'
     },
     totalLessons: {
         type: DataTypes.INTEGER,
-        defaultValue: 0
+        defaultValue: 0,
+        field: 'total_lessons'
     },
     ratings_average: {
         type: DataTypes.DECIMAL(3, 2),
@@ -76,7 +79,8 @@ const Course = sequelize.define('Course', {
     },
     enrolledCount: {
         type: DataTypes.INTEGER,
-        defaultValue: 0
+        defaultValue: 0,
+        field: 'enrolled_count'
     },
     status: {
         type: DataTypes.ENUM('draft', 'published', 'archived'),
@@ -88,15 +92,29 @@ const Course = sequelize.define('Course', {
     }
 }, {
     tableName: 'courses',
-    timestamps: true
+    timestamps: true,
+    getterMethods: {
+        duration() {
+            return this.durationHours;
+        }
+    },
+    setterMethods: {
+        duration(value) {
+            this.setDataValue('durationHours', value);
+        }
+    }
 });
 
-// Generate slug before saving
+// Normalize level before save (convert to lowercase for database)
 Course.beforeCreate((course) => {
     if (!course.slug && course.title) {
         course.slug = course.title.toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)/g, '');
+    }
+    // Normalize level to lowercase for database
+    if (course.level) {
+        course.level = course.level.toLowerCase();
     }
 });
 
@@ -106,7 +124,21 @@ Course.beforeUpdate((course) => {
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)/g, '');
     }
+    // Normalize level to lowercase for database
+    if (course.changed('level') && course.level) {
+        course.level = course.level.toLowerCase();
+    }
 });
+
+// Format level for API response (capitalize first letter)
+Course.prototype.toJSON = function() {
+    const values = { ...this.get() };
+    // Capitalize level for frontend compatibility
+    if (values.level) {
+        values.level = values.level.charAt(0).toUpperCase() + values.level.slice(1);
+    }
+    return values;
+};
 
 // Associations
 Course.belongsTo(User, { foreignKey: 'instructor_id', as: 'instructor' });

@@ -33,6 +33,13 @@ router.get('/stats', async (req, res) => {
             limit: 5
         });
 
+        // Format data for frontend
+        const formattedRecentUsers = recentUsers.map(user => user.toJSON());
+        const formattedPopularCourses = popularCourses.map(course => {
+            const courseData = course.toJSON();
+            return courseData;
+        });
+
         res.json({
             success: true,
             data: {
@@ -40,8 +47,8 @@ router.get('/stats', async (req, res) => {
                 totalCourses,
                 totalLessons,
                 totalEnrollments,
-                recentUsers,
-                popularCourses
+                recentUsers: formattedRecentUsers,
+                popularCourses: formattedPopularCourses
             }
         });
     } catch (error) {
@@ -88,9 +95,24 @@ router.get('/users', async (req, res) => {
             order: [['createdAt', 'DESC']]
         });
 
+        // Format users for frontend
+        const formattedUsers = users.map(user => {
+            const userData = user.toJSON();
+            if (userData.enrollments) {
+                userData.enrollments = userData.enrollments.map(enrollment => {
+                    const enrollmentData = enrollment.toJSON();
+                    if (enrollmentData.course) {
+                        enrollmentData.course = enrollmentData.course.toJSON();
+                    }
+                    return enrollmentData;
+                });
+            }
+            return userData;
+        });
+
         res.json({
             success: true,
-            data: users,
+            data: formattedUsers,
             pagination: {
                 page: parseInt(page),
                 limit: parseInt(limit),
@@ -126,7 +148,7 @@ router.put('/users/:id/status', async (req, res) => {
         res.json({
             success: true,
             message: `User ${user.isActive ? 'activated' : 'deactivated'} successfully`,
-            data: user
+            data: user.toJSON()
         });
     } catch (error) {
         console.error(error);

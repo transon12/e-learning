@@ -31,9 +31,21 @@ router.get('/course/:courseId', async (req, res) => {
             });
         }
 
+        // Format sections and lessons for frontend
+        const formattedSections = course.sections.map(section => {
+            const sectionData = section.toJSON();
+            if (sectionData.lessons) {
+                sectionData.lessons = sectionData.lessons.map(lesson => {
+                    const lessonData = lesson.toJSON ? lesson.toJSON() : lesson;
+                    return lessonData;
+                });
+            }
+            return sectionData;
+        });
+
         res.json({
             success: true,
-            data: course.sections
+            data: formattedSections
         });
     } catch (error) {
         console.error(error);
@@ -64,9 +76,12 @@ router.get('/', async (req, res) => {
             attributes: ['id', 'title', 'slug', 'description', 'duration', 'order_index', 'status', 'course_id', 'section_id']
         });
 
+        // Format lessons for frontend
+        const formattedLessons = lessons.map(lesson => lesson.toJSON());
+
         res.json({
             success: true,
-            data: lessons,
+            data: formattedLessons,
             total: await Lesson.count({ where })
         });
     } catch (error) {
@@ -118,9 +133,12 @@ router.get('/:id', async (req, res) => {
         // Increment view count
         await lesson.incrementView();
 
+        // Format lesson for frontend
+        const lessonData = lesson.toJSON();
+
         res.json({
             success: true,
-            data: lesson
+            data: lessonData
         });
     } catch (error) {
         console.error(error);
@@ -154,8 +172,15 @@ router.post('/', protect, authorize('instructor', 'admin'), async (req, res) => 
             });
         }
 
+        // Normalize duration if provided (frontend may send 'duration', model needs 'durationMinutes')
+        const lessonData = { ...req.body };
+        if (lessonData.duration !== undefined && lessonData.durationMinutes === undefined) {
+            lessonData.durationMinutes = lessonData.duration;
+            delete lessonData.duration;
+        }
+
         const lesson = await Lesson.create({
-            ...req.body,
+            ...lessonData,
             course_id: courseId,
             section_id: section_id || null,
             order_index: order_index || 0
@@ -186,7 +211,7 @@ router.post('/', protect, authorize('instructor', 'admin'), async (req, res) => 
 
         res.status(201).json({
             success: true,
-            data: lesson
+            data: lesson.toJSON()
         });
     } catch (error) {
         console.error(error);
@@ -224,11 +249,18 @@ router.put('/:id', protect, authorize('instructor', 'admin'), async (req, res) =
             });
         }
 
-        await lesson.update(req.body);
+        // Normalize duration if provided
+        const updateData = { ...req.body };
+        if (updateData.duration !== undefined && updateData.durationMinutes === undefined) {
+            updateData.durationMinutes = updateData.duration;
+            delete updateData.duration;
+        }
+
+        await lesson.update(updateData);
 
         res.json({
             success: true,
-            data: lesson
+            data: lesson.toJSON()
         });
     } catch (error) {
         console.error(error);
