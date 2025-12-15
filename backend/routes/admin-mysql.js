@@ -382,7 +382,16 @@ router.delete('/users/:userId/enrollments/:enrollmentId', async (req, res) => {
 
         // Decrement course enrolled count if was approved
         if (enrollment.status === 'approved' && enrollment.course) {
-            await enrollment.course.decrement('enrolledCount');
+            // Reload course to get current enrolledCount
+            await enrollment.course.reload();
+            const currentCount = enrollment.course.enrolledCount || enrollment.course.enrolled_count || 0;
+            // Only decrement if count is greater than 0
+            if (currentCount > 0) {
+                await enrollment.course.decrement('enrolledCount');
+            } else {
+                // Set to 0 if somehow it's already 0 or negative
+                await enrollment.course.update({ enrolledCount: 0 });
+            }
         }
 
         // Delete completed lessons

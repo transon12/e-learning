@@ -1,7 +1,9 @@
 <template>
-  <div>
+  <div class="d-flex flex-column min-vh-100">
     <Navbar />
-    <router-view />
+    <main class="flex-grow-1">
+      <router-view />
+    </main>
     <Footer />
     <BackToTop />
   </div>

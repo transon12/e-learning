@@ -26,13 +26,6 @@
         <router-link to="/courses" class="nav-item nav-link" :class="{ active: $route.path === '/courses' }">
           Khóa học
         </router-link>
-        <div class="nav-item dropdown">
-          <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" @click.prevent>Pages</a>
-          <div class="dropdown-menu fade-down">
-            <router-link to="/team" class="dropdown-item">Our Team</router-link>
-            <router-link to="/testimonial" class="dropdown-item">Testimonial</router-link>
-          </div>
-        </div>
         <router-link to="/contact" class="nav-item nav-link" :class="{ active: $route.path === '/contact' }">
           Liên hệ
         </router-link>
