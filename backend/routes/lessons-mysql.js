@@ -2,6 +2,7 @@ const express = require('express');
 const { Op } = require('sequelize');
 const { Lesson, Course, CourseSection } = require('../models');
 const { protect, authorize } = require('../middleware/auth');
+const { formatLessonUrls, formatLessonsUrls } = require('../utils/fileHelper');
 
 const router = express.Router();
 
@@ -17,7 +18,7 @@ router.get('/course/:courseId', async (req, res) => {
                 include: [{
                     model: Lesson,
                     as: 'lessons',
-                    attributes: ['id', 'title', 'slug', 'duration', 'order_index', 'isPreview', 'isLocked', 'viewCount'],
+                    attributes: ['id', 'title', 'slug', 'durationMinutes', 'order_index', 'isPreview', 'isLocked', 'viewCount'],
                     order: [['order_index', 'ASC']]
                 }],
                 order: [['order_index', 'ASC']]
@@ -31,14 +32,11 @@ router.get('/course/:courseId', async (req, res) => {
             });
         }
 
-        // Format sections and lessons for frontend
+        // Format sections and lessons for frontend (with URLs)
         const formattedSections = course.sections.map(section => {
             const sectionData = section.toJSON();
             if (sectionData.lessons) {
-                sectionData.lessons = sectionData.lessons.map(lesson => {
-                    const lessonData = lesson.toJSON ? lesson.toJSON() : lesson;
-                    return lessonData;
-                });
+                sectionData.lessons = formatLessonsUrls(sectionData.lessons);
             }
             return sectionData;
         });
@@ -73,11 +71,11 @@ router.get('/', async (req, res) => {
             limit: parseInt(limit),
             offset: parseInt(offset),
             order: [['order_index', 'ASC'], ['createdAt', 'DESC']],
-            attributes: ['id', 'title', 'slug', 'description', 'duration', 'order_index', 'status', 'course_id', 'section_id']
+            attributes: ['id', 'title', 'slug', 'description', 'durationMinutes', 'order_index', 'status', 'course_id', 'section_id']
         });
 
-        // Format lessons for frontend
-        const formattedLessons = lessons.map(lesson => lesson.toJSON());
+        // Format lessons for frontend (with URLs)
+        const formattedLessons = formatLessonsUrls(lessons);
 
         res.json({
             success: true,
@@ -133,8 +131,8 @@ router.get('/:id', async (req, res) => {
         // Increment view count
         await lesson.incrementView();
 
-        // Format lesson for frontend
-        const lessonData = lesson.toJSON();
+        // Format lesson for frontend (with URLs)
+        const lessonData = formatLessonUrls(lesson);
 
         res.json({
             success: true,

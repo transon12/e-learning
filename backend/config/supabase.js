@@ -2,7 +2,7 @@ const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
 // Supabase configuration
-const supabaseUrl = process.env.~;
+const supabaseUrl = process.env.PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
 if (!supabaseUrl || !supabaseKey) {

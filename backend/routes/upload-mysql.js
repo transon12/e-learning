@@ -3,6 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const { protect, authorize } = require('../middleware/auth');
 const { uploadSingle, uploadMultiple, uploadFields } = require('../middleware/upload');
+const { uploadToS3Middleware, deleteFile } = require('../middleware/s3Upload');
+const { getFileUrl } = require('../services/s3Service');
 const { Lesson, Course } = require('../models');
 
 const router = express.Router();
@@ -12,17 +14,16 @@ async function updateCourseThumbnail(courseId, fileData) {
     const course = await Course.findByPk(courseId);
     if (!course) throw new Error('Course not found');
 
-    // Xóa file cũ nếu có và không phải default
-    if (course.thumbnail && course.thumbnail.startsWith('/uploads')) {
-        const oldPath = path.join(__dirname, '..', course.thumbnail);
-        if (fs.existsSync(oldPath)) {
-            fs.unlinkSync(oldPath);
-        }
+    // Xóa file cũ nếu có
+    if (course.thumbnail) {
+        await deleteFile(course.thumbnail);
     }
 
-    const relPath = fileData.path.replace(path.join(__dirname, '..'), '');
+    // Use S3 URL if available, otherwise use local path
+    const thumbnailUrl = fileData.s3Url || getFileUrl(fileData.path);
+    
     await course.update({
-        thumbnail: relPath.startsWith('/uploads') ? relPath : `${relPath}`
+        thumbnail: thumbnailUrl
     });
     return course;
 }
@@ -38,24 +39,25 @@ async function updateLessonFile(lessonId, fileType, fileData) {
     // Delete old file if exists
     const oldFileField = `file_${fileType}_path`;
     if (lesson[oldFileField]) {
-        const oldPath = path.join(__dirname, '..', lesson[oldFileField]);
-        if (fs.existsSync(oldPath)) {
-            fs.unlinkSync(oldPath);
-        }
+        await deleteFile(lesson[oldFileField]);
     }
+
+    // Use S3 URL if available, otherwise use local path
+    const fileUrl = fileData.s3Url || getFileUrl(fileData.path);
+    const filePath = fileData.s3Url ? fileData.s3Key : fileData.path.replace(path.join(__dirname, '..'), '');
 
     // Update lesson with new file info
     const updateData = {
-        [`file_${fileType}_filename`]: fileData.filename,
-        [`file_${fileType}_path`]: fileData.path.replace(path.join(__dirname, '..'), ''),
+        [`file_${fileType}_filename`]: fileData.filename || fileData.originalname,
+        [`file_${fileType}_path`]: filePath,
         [`file_${fileType}_size`]: fileData.size,
         [`file_${fileType}_mimetype`]: fileData.mimetype
     };
 
     // If video, also update videoUrl
-    if (fileType === 'video' && !lesson.videoUrl) {
-        updateData.videoUrl = `${fileData.path.split('uploads')[1].replace(/\\/g, '/')}`;
-        updateData.videoType = 'local';
+    if (fileType === 'video') {
+        updateData.videoUrl = fileUrl;
+        updateData.videoType = fileData.s3Url ? 's3' : 'local';
     }
 
     await lesson.update(updateData);
@@ -63,7 +65,7 @@ async function updateLessonFile(lessonId, fileType, fileData) {
 }
 
 // @route   POST /api/upload/lesson/:lessonId/video
-router.post('/lesson/:lessonId/video', protect, authorize('instructor', 'admin'), uploadSingle('video'), async (req, res) => {
+router.post('/lesson/:lessonId/video', protect, authorize('instructor', 'admin'), uploadSingle('video'), uploadToS3Middleware, async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({
@@ -100,16 +102,20 @@ router.post('/lesson/:lessonId/video', protect, authorize('instructor', 'admin')
             message: 'Upload video thành công',
             data: {
                 file: {
-                    filename: req.file.filename,
-                    path: req.file.path.replace(path.join(__dirname, '..'), ''),
+                    filename: req.file.filename || req.file.originalname,
+                    path: req.file.s3Url || req.file.path.replace(path.join(__dirname, '..'), ''),
+                    url: req.file.s3Url || getFileUrl(req.file.path),
                     size: req.file.size,
                     mimetype: req.file.mimetype
                 }
             }
         });
     } catch (error) {
-        if (req.file && req.file.path) {
-            fs.unlinkSync(req.file.path);
+        if (req.file && req.file.path && !req.file.s3Url) {
+            // Only delete local file if not uploaded to S3
+            if (fs.existsSync(req.file.path)) {
+                fs.unlinkSync(req.file.path);
+            }
         }
         console.error(error);
         res.status(500).json({
@@ -120,7 +126,7 @@ router.post('/lesson/:lessonId/video', protect, authorize('instructor', 'admin')
 });
 
 // @route   POST /api/upload/lesson/:lessonId/audio
-router.post('/lesson/:lessonId/audio', protect, authorize('instructor', 'admin'), uploadSingle('audio'), async (req, res) => {
+router.post('/lesson/:lessonId/audio', protect, authorize('instructor', 'admin'), uploadSingle('audio'), uploadToS3Middleware, async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({
@@ -157,8 +163,10 @@ router.post('/lesson/:lessonId/audio', protect, authorize('instructor', 'admin')
             message: 'Upload audio thành công'
         });
     } catch (error) {
-        if (req.file && req.file.path) {
-            fs.unlinkSync(req.file.path);
+        if (req.file && req.file.path && !req.file.s3Url) {
+            if (fs.existsSync(req.file.path)) {
+                fs.unlinkSync(req.file.path);
+            }
         }
         console.error(error);
         res.status(500).json({
@@ -169,7 +177,7 @@ router.post('/lesson/:lessonId/audio', protect, authorize('instructor', 'admin')
 });
 
 // @route   POST /api/upload/lesson/:lessonId/pdf
-router.post('/lesson/:lessonId/pdf', protect, authorize('instructor', 'admin'), uploadSingle('pdf'), async (req, res) => {
+router.post('/lesson/:lessonId/pdf', protect, authorize('instructor', 'admin'), uploadSingle('pdf'), uploadToS3Middleware, async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({
@@ -206,8 +214,10 @@ router.post('/lesson/:lessonId/pdf', protect, authorize('instructor', 'admin'), 
             message: 'Upload PDF thành công'
         });
     } catch (error) {
-        if (req.file && req.file.path) {
-            fs.unlinkSync(req.file.path);
+        if (req.file && req.file.path && !req.file.s3Url) {
+            if (fs.existsSync(req.file.path)) {
+                fs.unlinkSync(req.file.path);
+            }
         }
         console.error(error);
         res.status(500).json({
@@ -222,7 +232,7 @@ router.post('/lesson/:lessonId/multiple', protect, authorize('instructor', 'admi
     { name: 'video', maxCount: 1 },
     { name: 'audio', maxCount: 1 },
     { name: 'pdf', maxCount: 1 }
-]), async (req, res) => {
+]), uploadToS3Middleware, async (req, res) => {
     try {
         const lesson = await Lesson.findByPk(req.params.lessonId, {
             include: [{ model: Course, as: 'course' }]
@@ -278,7 +288,9 @@ router.post('/lesson/:lessonId/multiple', protect, authorize('instructor', 'admi
     } catch (error) {
         if (req.files) {
             Object.values(req.files).flat().forEach(file => {
-                if (file.path) fs.unlinkSync(file.path);
+                if (file.path && !file.s3Url && fs.existsSync(file.path)) {
+                    fs.unlinkSync(file.path);
+                }
             });
         }
         console.error(error);
@@ -318,13 +330,10 @@ router.delete('/lesson/:lessonId/file/:fileType', protect, authorize('instructor
             });
         }
 
-        // Delete file from server
+        // Delete file from S3 or local server
         const filePathField = `file_${fileType}_path`;
         if (lesson[filePathField]) {
-            const filePath = path.join(__dirname, '..', lesson[filePathField]);
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-            }
+            await deleteFile(lesson[filePathField]);
         }
 
         // Clear file info from database
@@ -350,7 +359,7 @@ router.delete('/lesson/:lessonId/file/:fileType', protect, authorize('instructor
 });
 
 // @route POST /api/upload/course/:courseId/avatar
-router.post('/course/:courseId/avatar', protect, authorize('instructor', 'admin'), uploadSingle('avatar'), async (req, res) => {
+router.post('/course/:courseId/avatar', protect, authorize('instructor', 'admin'), uploadSingle('avatar'), uploadToS3Middleware, async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({
@@ -361,7 +370,10 @@ router.post('/course/:courseId/avatar', protect, authorize('instructor', 'admin'
 
         const course = await Course.findByPk(req.params.courseId);
         if (!course) {
-            fs.unlinkSync(req.file.path);
+            // Chỉ xóa file local nếu chưa upload lên S3
+            if (req.file && req.file.path && !req.file.s3Url && fs.existsSync(req.file.path)) {
+                fs.unlinkSync(req.file.path);
+            }
             return res.status(404).json({
                 success: false,
                 message: 'Khóa học không tồn tại'
@@ -370,7 +382,10 @@ router.post('/course/:courseId/avatar', protect, authorize('instructor', 'admin'
 
         // Instructor hoặc admin
         if (course.instructor_id !== req.user.id && req.user.role !== 'admin') {
-            fs.unlinkSync(req.file.path);
+            // Chỉ xóa file local nếu chưa upload lên S3
+            if (req.file && req.file.path && !req.file.s3Url && fs.existsSync(req.file.path)) {
+                fs.unlinkSync(req.file.path);
+            }
             return res.status(403).json({
                 success: false,
                 message: 'Không có quyền upload ảnh cho khóa học này'
@@ -379,15 +394,17 @@ router.post('/course/:courseId/avatar', protect, authorize('instructor', 'admin'
 
         await updateCourseThumbnail(req.params.courseId, req.file);
 
+        const thumbnailUrl = req.file.s3Url || getFileUrl(req.file.path);
+
         res.json({
             success: true,
             message: 'Upload ảnh đại diện thành công',
             data: {
-                thumbnail: `${req.file.path.split('uploads')[1].replace(/\\/g, '')}`
+                thumbnail: thumbnailUrl
             }
         });
     } catch (error) {
-        if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+        if (req.file && req.file.path && !req.file.s3Url && fs.existsSync(req.file.path)) {
             fs.unlinkSync(req.file.path);
         }
         console.error(error);

@@ -60,7 +60,7 @@
           <div v-for="course in paginatedCourses" :key="course.id" class="course-card">
             <div class="row align-items-center">
               <div class="col-md-2">
-                <img :src="course.thumbnail || '/img/course-1.jpg'" class="img-fluid rounded" :alt="course.title">
+                <img :src="resolveThumbnail(course.thumbnail)" class="img-fluid rounded" :alt="course.title">
               </div>
               <div class="col-md-6">
                 <h5 class="mb-1">{{ course.title }}</h5>
@@ -224,6 +224,8 @@ import api from '@/services/api'
 import { Modal } from 'bootstrap'
 
 const router = useRouter()
+const apiBaseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || ''
+const normalizedBaseUrl = computed(() => apiBaseUrl ? apiBaseUrl.replace(/\/$/, '') : '')
 const loading = ref(true)
 const courses = ref([])
 const searchTerm = ref('')
@@ -292,6 +294,14 @@ const paginatedCourses = computed(() => {
   const end = start + pagination.value.limit
   return filteredCourses.value.slice(start, end)
 })
+
+const resolveThumbnail = (thumb) => {
+  if (!thumb) return '/img/course-1.jpg'
+  // Nếu là url tuyệt đối (http/https) thì dùng nguyên
+  if (/^https?:\/\//i.test(thumb)) return thumb
+  const path = thumb.startsWith('/') ? thumb : `/${thumb}`
+  return `${normalizedBaseUrl.value}${path}`
+}
 
 const visiblePages = computed(() => {
   const pages = []
@@ -455,12 +465,22 @@ const uploadAvatar = async (courseId) => {
   try {
     uploadingAvatar.value = true
     uploadProgressAvatar.value = 0
-    await api.post(`/upload/course/${courseId}/avatar`, formData, {
+    const response = await api.post(`/upload/course/${courseId}/avatar`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       onUploadProgress: (e) => {
         uploadProgressAvatar.value = Math.round((e.loaded * 100) / (e.total || 1))
       }
     })
+    
+    // Cập nhật thumbnail URL từ response (có thể là S3 URL hoặc local URL)
+    if (response.data?.data?.thumbnail) {
+      courseForm.value.thumbnail = response.data.data.thumbnail
+      // Cập nhật preview nếu là S3 URL
+      if (response.data.data.thumbnail.startsWith('http://') || response.data.data.thumbnail.startsWith('https://')) {
+        avatarPreview.value = response.data.data.thumbnail
+      }
+    }
+    
     alert('Upload ảnh đại diện thành công!')
   } catch (error) {
     alert('Lỗi upload ảnh: ' + (error.response?.data?.message || error.message))

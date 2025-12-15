@@ -78,7 +78,9 @@
               <!-- PDF Viewer (hiển thị cùng media) -->
               <div v-if="lesson.file_pdf_path" class="mb-4">
                 <iframe 
-                  :src="`${normalizedBaseUrl}${lesson.file_pdf_path.startsWith('/') ? '' : '/'}${lesson.file_pdf_path}`" 
+                  :src="lesson.file_pdf_path.startsWith('http://') || lesson.file_pdf_path.startsWith('https://') 
+                    ? lesson.file_pdf_path 
+                    : `${normalizedBaseUrl}${lesson.file_pdf_path.startsWith('/') ? '' : '/'}${lesson.file_pdf_path}`" 
                   class="w-100" 
                   style="height: 600px;"
                 ></iframe>
@@ -157,19 +159,29 @@ const videoSource = computed(() => {
     return { type: 'embed', src: lesson.value.videoUrl }
   }
 
-  // Video file đã upload
+  // Video file đã upload (có thể là S3 URL hoặc local path)
   if (lesson.value.file_video_path) {
+    // Nếu đã là full URL (S3), dùng trực tiếp
+    if (lesson.value.file_video_path.startsWith('http://') || lesson.value.file_video_path.startsWith('https://')) {
+      return { type: 'file', src: lesson.value.file_video_path }
+    }
+    // Nếu là local path, thêm base URL
     const path = lesson.value.file_video_path.startsWith('/')
       ? lesson.value.file_video_path
-      : `${lesson.value.file_video_path}`
+      : `/${lesson.value.file_video_path}`
     return { type: 'file', src: `${normalizedBaseUrl.value}${path}` }
   }
 
-  // Video local lưu ở videoUrl
-  if (lesson.value.videoType === 'local' && lesson.value.videoUrl) {
+  // Video local lưu ở videoUrl (có thể là S3 URL hoặc local path)
+  if ((lesson.value.videoType === 'local' || lesson.value.videoType === 's3') && lesson.value.videoUrl) {
+    // Nếu đã là full URL (S3), dùng trực tiếp
+    if (lesson.value.videoUrl.startsWith('http://') || lesson.value.videoUrl.startsWith('https://')) {
+      return { type: 'file', src: lesson.value.videoUrl }
+    }
+    // Nếu là local path, thêm base URL
     const path = lesson.value.videoUrl.startsWith('/')
       ? lesson.value.videoUrl
-      : `${lesson.value.videoUrl}`
+      : `/${lesson.value.videoUrl}`
     return { type: 'file', src: `${normalizedBaseUrl.value}${path}` }
   }
 
@@ -181,9 +193,15 @@ const audioSource = computed(() => {
   if (videoSource.value.src) return null
   if (!lesson.value?.file_audio_path) return null
 
+  // Nếu đã là full URL (S3), dùng trực tiếp
+  if (lesson.value.file_audio_path.startsWith('http://') || lesson.value.file_audio_path.startsWith('https://')) {
+    return lesson.value.file_audio_path
+  }
+  
+  // Nếu là local path, thêm base URL
   const path = lesson.value.file_audio_path.startsWith('/')
     ? lesson.value.file_audio_path
-    : `${lesson.value.file_audio_path}`
+    : `/${lesson.value.file_audio_path}`
   return `${normalizedBaseUrl.value}${path}`
 })
 

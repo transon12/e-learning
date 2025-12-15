@@ -73,9 +73,9 @@ router.post('/register', [
                 username: userData.username,
                 email: userData.email,
                 role: userData.role,
-                profileFirstName: userData.profileFirstName,
-                profileLastName: userData.profileLastName,
-                profileAvatar: userData.profile_avatar
+                profile_first_name: userData.profile_first_name,
+                profile_last_name: userData.profile_last_name,
+                profile_avatar: userData.profile_avatar
             }
         });
     } catch (error) {
@@ -141,9 +141,9 @@ router.post('/login', [
                 username: userData.username,
                 email: userData.email,
                 role: userData.role,
-                profileFirstName: userData.profileFirstName,
-                profileLastName: userData.profileLastName,
-                profileAvatar: userData.profile_avatar
+                profile_first_name: userData.profile_first_name,
+                profile_last_name: userData.profile_last_name,
+                profile_avatar: userData.profile_avatar
             }
         });
     } catch (error) {

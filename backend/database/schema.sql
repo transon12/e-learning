@@ -192,7 +192,7 @@ INSERT INTO users (username, email, password, role) VALUES
 ON DUPLICATE KEY UPDATE username=username;
 
 -- Insert Sample Instructor
-INSERT INTO users (username, email, password, role, profile_firstName, profile_lastName) VALUES 
+INSERT INTO users (username, email, password, role, profile_first_name, profile_last_name) VALUES 
 ('instructor1', 'instructor@secretcoder.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyY5Y5Y5Y5Y5', 'instructor', 'John', 'Doe')
 ON DUPLICATE KEY UPDATE username=username;
 

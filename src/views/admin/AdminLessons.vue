@@ -522,6 +522,7 @@ const initCKEditor = async () => {
     try {
       editorInstance = await ClassicEditor.create(container, {
         initialData: lessonForm.value.content || '',
+        licenseKey: 'GPL',
         toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', 'insertTable', '|', 'undo', 'redo']
       })
       

@@ -2,6 +2,7 @@ const express = require('express');
 const { Op } = require('sequelize');
 const { Course, User, Lesson, CourseSection } = require('../models');
 const { protect, authorize } = require('../middleware/auth');
+const { formatCoursesUrls, formatNestedCourseUrls, formatCourseUrls } = require('../utils/fileHelper');
 
 const router = express.Router();
 
@@ -39,20 +40,19 @@ router.get('/', async (req, res) => {
             include: [{
                 model: User,
                 as: 'instructor',
-                attributes: ['id', 'username', 'profile_firstName', 'profile_lastName']
+                attributes: ['id', 'username', 'profile_first_name', 'profile_last_name']
             }],
             limit: parseInt(limit),
             offset: (parseInt(page) - 1) * parseInt(limit),
             order: [['createdAt', 'DESC']]
         });
 
-        // Format courses for frontend (capitalize level)
-        const formattedCourses = courses.map(course => {
-            const courseData = course.toJSON();
-            if (courseData.level) {
-                courseData.level = courseData.level.charAt(0).toUpperCase() + courseData.level.slice(1);
+        // Format courses for frontend (capitalize level and format URLs)
+        const formattedCourses = formatCoursesUrls(courses).map(course => {
+            if (course.level) {
+                course.level = course.level.charAt(0).toUpperCase() + course.level.slice(1);
             }
-            return courseData;
+            return course;
         });
 
         res.json({
@@ -95,7 +95,7 @@ router.get('/:id', async (req, res) => {
                 {
                     model: User,
                     as: 'instructor',
-                    attributes: ['id', 'username', 'profile_firstName', 'profile_lastName', 'profile_avatar']
+                    attributes: ['id', 'username', 'profile_first_name', 'profile_last_name', 'profile_avatar']
                 },
                 {
                     model: CourseSection,
@@ -103,7 +103,7 @@ router.get('/:id', async (req, res) => {
                     include: [{
                         model: Lesson,
                         as: 'lessons',
-                        attributes: ['id', 'title', 'slug', 'duration', 'order_index', 'isPreview', 'isLocked']
+                        attributes: ['id', 'title', 'slug', 'durationMinutes', 'order_index', 'isPreview', 'isLocked']
                     }],
                     order: [['order_index', 'ASC']]
                 }
@@ -117,22 +117,10 @@ router.get('/:id', async (req, res) => {
             });
         }
 
-        // Format course for frontend (capitalize level)
-        const courseData = course.toJSON();
+        // Format course for frontend (capitalize level and format URLs)
+        const courseData = formatNestedCourseUrls(course);
         if (courseData.level) {
             courseData.level = courseData.level.charAt(0).toUpperCase() + courseData.level.slice(1);
-        }
-        // Format nested lessons if present
-        if (courseData.sections) {
-            courseData.sections = courseData.sections.map(section => {
-                if (section.lessons) {
-                    section.lessons = section.lessons.map(lesson => {
-                        const lessonData = lesson.toJSON ? lesson.toJSON() : lesson;
-                        return lessonData;
-                    });
-                }
-                return section;
-            });
         }
 
         res.json({

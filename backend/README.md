@@ -108,6 +108,13 @@ POST /api/auth/register
   "email": "student@example.com",
   "password": "password123"
 }
+POST /api/auth/register
+{
+  "username": "admin",
+  "email": "admin@e-learning.com",
+  "password": "ZdQX8Ns$ik7wRY2$
+"
+}
 ```
 
 ### Đăng nhập

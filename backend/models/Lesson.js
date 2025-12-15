@@ -198,6 +198,11 @@ Lesson.prototype.toJSON = function() {
         }
     });
     
+    // Add duration field from getter for frontend compatibility
+    if (this.durationMinutes !== undefined) {
+        values.duration = this.duration;
+    }
+    
     return values;
 };
 

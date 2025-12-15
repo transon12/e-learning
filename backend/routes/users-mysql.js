@@ -102,7 +102,7 @@ router.get('/enrolled-courses', protect, async (req, res) => {
                 include: [{
                     model: Course,
                     as: 'course',
-                    attributes: ['id', 'title', 'thumbnail', 'slug', 'description', 'duration', 'totalLessons'],
+                    attributes: ['id', 'title', 'thumbnail', 'slug', 'description', 'durationHours', 'totalLessons'],
                     include: [{
                         model: User,
                         as: 'instructor',

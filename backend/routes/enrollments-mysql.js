@@ -211,7 +211,7 @@ router.get('/', protect, authorize('admin'), async (req, res) => {
         const enrollments = await Enrollment.findAll({
             where,
             include: [
-                { model: User, as: 'user', attributes: ['id', 'username', 'email', 'profile_firstName', 'profile_lastName'] },
+                { model: User, as: 'user', attributes: ['id', 'username', 'email', 'profile_first_name', 'profile_last_name'] },
                 { model: Course, as: 'course', attributes: ['id', 'title', 'category'] }
             ],
             order: [['enrolledAt', 'DESC']]

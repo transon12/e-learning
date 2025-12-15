@@ -194,7 +194,7 @@ const course = await Course.findOne({
     include: [{
         model: User,
         as: 'instructor',
-        attributes: ['id', 'username', 'profile_firstName', 'profile_lastName']
+        attributes: ['id', 'username', 'profile_first_name', 'profile_last_name']
     }]
 });
 ```

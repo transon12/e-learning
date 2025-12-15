@@ -137,6 +137,10 @@ Course.prototype.toJSON = function() {
     if (values.level) {
         values.level = values.level.charAt(0).toUpperCase() + values.level.slice(1);
     }
+    // Add duration field from getter for frontend compatibility
+    if (this.durationHours !== undefined) {
+        values.duration = this.duration;
+    }
     return values;
 };
 
