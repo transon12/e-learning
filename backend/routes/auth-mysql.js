@@ -176,19 +176,80 @@ router.get('/me', protect, async (req, res) => {
 
         // Format user for frontend
         const userData = user.toJSON();
+        // After toJSON(), nested objects are already plain objects, no need to call toJSON() again
         if (userData.enrollments) {
             userData.enrollments = userData.enrollments.map(enrollment => {
-                const enrollmentData = enrollment.toJSON();
-                if (enrollmentData.course) {
-                    enrollmentData.course = enrollmentData.course.toJSON();
-                }
-                return enrollmentData;
+                // enrollment is already a plain object after user.toJSON()
+                return enrollment || {};
             });
         }
 
         res.json({
             success: true,
             user: userData
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+});
+
+// @route   PUT /api/auth/change-password
+// @desc    Change user password
+// @access  Private
+router.put('/change-password', protect, [
+    body('currentPassword').notEmpty().withMessage('Current password is required'),
+    body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
+], async (req, res) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                success: false,
+                errors: errors.array()
+            });
+        }
+
+        const { currentPassword, newPassword } = req.body;
+
+        // Get user with password
+        const user = await User.findByPk(req.user.id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Verify current password
+        const isMatch = await user.comparePassword(currentPassword);
+
+        if (!isMatch) {
+            return res.status(400).json({
+                success: false,
+                message: 'Mật khẩu hiện tại không đúng'
+            });
+        }
+
+        // Check if new password is same as current
+        const isSamePassword = await user.comparePassword(newPassword);
+        if (isSamePassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'Mật khẩu mới phải khác mật khẩu hiện tại'
+            });
+        }
+
+        // Update password (will be hashed by beforeUpdate hook)
+        await user.update({ password: newPassword });
+
+        res.json({
+            success: true,
+            message: 'Đổi mật khẩu thành công'
         });
     } catch (error) {
         console.error(error);

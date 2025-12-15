@@ -28,7 +28,7 @@
 
           <!-- Main Content -->
           <div class="col-lg-9">
-            <div v-if="authStore.isAuthenticated && enrollmentStatus !== 'approved'" class="alert alert-warning mb-4">
+            <div v-if="!authStore.isAdmin && authStore.isAuthenticated && enrollmentStatus !== 'approved'" class="alert alert-warning mb-4">
               <i class="fa fa-exclamation-triangle me-2"></i>
               <span v-if="enrollmentStatus === 'pending'">
                 Bạn chưa được duyệt vào khóa học này. Vui lòng chờ admin duyệt.
@@ -101,10 +101,16 @@
                 <button 
                   class="btn btn-success" 
                   @click="markComplete"
-                  v-if="authStore.isAuthenticated"
+                  v-if="authStore.isAuthenticated && !isLessonCompleted"
                 >
                   <i class="fa fa-check me-2"></i>Mark Complete
                 </button>
+                <span 
+                  v-if="authStore.isAuthenticated && isLessonCompleted"
+                  class="badge bg-success fs-6 px-3 py-2"
+                >
+                  <i class="fa fa-check-circle me-2"></i>Đã hoàn thành
+                </span>
                 <button 
                   class="btn btn-primary" 
                   @click="goToNext"
@@ -138,7 +144,10 @@ const sections = ref([])
 const allLessons = ref([])
 const enrollmentStatus = ref(null)
 const courseId = ref(null)
+const completedLessons = ref([]) // Danh sách lesson IDs đã hoàn thành
 const canViewLesson = computed(() => {
+  // Admin có thể xem tất cả bài học mà không cần enrollment
+  if (authStore.isAdmin) return true
   // Cho phép xem nếu bài học free/preview
   if (lesson.value?.isPreview) return true
   // Còn lại: phải đăng nhập và đã được duyệt
@@ -219,6 +228,12 @@ const nextLesson = computed(() => {
   return index < allLessons.value.length - 1 ? allLessons.value[index + 1] : null
 })
 
+// Kiểm tra xem lesson hiện tại đã được đánh dấu hoàn thành chưa
+const isLessonCompleted = computed(() => {
+  if (!lesson.value || !completedLessons.value.length) return false
+  return completedLessons.value.includes(lesson.value.id)
+})
+
 onMounted(async () => {
   await fetchLesson()
   await fetchSections()
@@ -230,6 +245,10 @@ watch(() => route.params.id, async (newId) => {
   loading.value = true
   await fetchLesson()
   await fetchSections()
+  // Reload completed lessons từ DB khi chuyển lesson
+  if (authStore.isAuthenticated && courseId.value) {
+    await reloadCompletedLessons()
+  }
   window.scrollTo({ top: 0, behavior: 'smooth' })
 })
 
@@ -237,11 +256,20 @@ const fetchLesson = async () => {
   try {
     const response = await api.get(`/lessons/${route.params.id}`)
     lesson.value = response.data.data
-    courseId.value = lesson.value.course_id
+    const newCourseId = lesson.value.course_id
     
-    // Check enrollment status if user is authenticated
-    if (authStore.isAuthenticated && courseId.value) {
-      await checkEnrollment()
+    // Nếu course_id thay đổi, cần reload enrollment và completed lessons
+    if (courseId.value !== newCourseId) {
+      courseId.value = newCourseId
+      // Check enrollment status if user is authenticated
+      if (authStore.isAuthenticated && courseId.value) {
+        await checkEnrollment()
+      }
+    } else {
+      // Nếu cùng course, chỉ cần reload completed lessons để đảm bảo sync
+      if (authStore.isAuthenticated && courseId.value) {
+        await checkEnrollment()
+      }
     }
     
     // Fetch course sections to get all lessons
@@ -272,16 +300,27 @@ const fetchSections = async () => {
 }
 
 const checkEnrollment = async () => {
+  // Admin không cần check enrollment
+  if (authStore.isAdmin) {
+    enrollmentStatus.value = 'approved'
+    completedLessons.value = [] // Admin không có completed lessons
+    return
+  }
+  
   if (!courseId.value || !authStore.isAuthenticated) {
     enrollmentStatus.value = null
+    completedLessons.value = []
     return
   }
   
   try {
     const response = await api.get(`/enrollments/${courseId.value}/progress`)
     enrollmentStatus.value = response.data.data?.status || null
+    // Lấy danh sách completed lessons từ DB
+    completedLessons.value = response.data.data?.completedLessons || []
   } catch (error) {
     enrollmentStatus.value = null
+    completedLessons.value = []
   }
 }
 
@@ -311,9 +350,34 @@ const markComplete = async () => {
   
   try {
     await api.post(`/enrollments/${lesson.value.course_id}/complete-lesson/${lesson.value.id}`)
-    alert('Lesson marked as complete!')
+    // Reload completed lessons từ DB để đảm bảo sync
+    await reloadCompletedLessons()
   } catch (error) {
     console.error('Error marking lesson complete:', error)
+    alert(error.response?.data?.message || 'Lỗi khi đánh dấu hoàn thành')
+  }
+}
+
+// Reload completed lessons từ DB
+const reloadCompletedLessons = async () => {
+  if (!courseId.value || !authStore.isAuthenticated) {
+    completedLessons.value = []
+    return
+  }
+  
+  // Admin không có completed lessons
+  if (authStore.isAdmin) {
+    completedLessons.value = []
+    return
+  }
+  
+  try {
+    const response = await api.get(`/enrollments/${courseId.value}/progress`)
+    // Lấy danh sách completed lessons từ DB
+    completedLessons.value = response.data.data?.completedLessons || []
+  } catch (error) {
+    console.error('Error reloading completed lessons:', error)
+    completedLessons.value = []
   }
 }
 </script>

@@ -41,7 +41,18 @@ const routes = [
       {
         path: 'about',
         name: 'About',
-        component: () => import('@/views/Home.vue')
+        component: () => import('@/views/About.vue')
+      },
+      {
+        path: 'contact',
+        name: 'Contact',
+        component: () => import('@/views/Contact.vue')
+      },
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: () => import('@/views/Profile.vue'),
+        meta: { requiresAuth: true }
       }
     ]
   },
@@ -84,6 +95,21 @@ const routes = [
         path: 'stats',
         name: 'AdminStats',
         component: () => import('@/views/admin/AdminStats.vue')
+      },
+      {
+        path: 'instructors',
+        name: 'AdminInstructors',
+        component: () => import('@/views/admin/AdminInstructors.vue')
+      },
+      {
+        path: 'students',
+        name: 'AdminStudents',
+        component: () => import('@/views/admin/AdminStudents.vue')
+      },
+      {
+        path: 'contact-messages',
+        name: 'AdminContactMessages',
+        component: () => import('@/views/admin/AdminContactMessages.vue')
       }
     ]
   },

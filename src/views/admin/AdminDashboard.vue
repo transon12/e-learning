@@ -1,7 +1,5 @@
 <template>
   <div>
-          <h2 class="mb-4">Dashboard</h2>
-          
           <div v-if="loading" class="text-center py-5">
             <div class="spinner-border text-primary" role="status"></div>
           </div>

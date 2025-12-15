@@ -43,35 +43,56 @@ router.get('/profile', protect, async (req, res) => {
 // @access  Private
 router.put('/profile', protect, async (req, res) => {
     try {
-        const { profile, ...otherFields } = req.body;
+        // Don't allow changing password, role, email, or username through this route
+        const allowedFields = [
+            'profile_first_name',
+            'profile_last_name',
+            'profile_phone',
+            'profile_bio',
+            'profile_avatar',
+            'profile_cover_image'
+        ];
 
-        // Don't allow changing password, role, or email through this route
-        delete otherFields.password;
-        delete otherFields.role;
-        delete otherFields.email;
+        const updateData = {};
+        
+        // Only include allowed fields
+        allowedFields.forEach(field => {
+            if (req.body[field] !== undefined) {
+                updateData[field] = req.body[field];
+            }
+        });
 
-        const updateData = { ...otherFields };
-        if (profile) {
-            Object.keys(profile).forEach(key => {
-                // Map camelCase to snake_case field names
-                const fieldMap = {
-                    'firstName': 'profileFirstName',
-                    'lastName': 'profileLastName',
-                    'avatar': 'profile_avatar',
-                    'bio': 'profile_bio',
-                    'phone': 'profile_phone'
-                };
-                const fieldName = fieldMap[key] || `profile_${key}`;
-                updateData[fieldName] = profile[key];
-            });
+        // Handle camelCase fields from frontend
+        if (req.body.profile_first_name !== undefined) {
+            updateData.profile_first_name = req.body.profile_first_name;
+        }
+        if (req.body.profile_last_name !== undefined) {
+            updateData.profile_last_name = req.body.profile_last_name;
+        }
+        if (req.body.profile_phone !== undefined) {
+            updateData.profile_phone = req.body.profile_phone;
+        }
+        if (req.body.profile_bio !== undefined) {
+            updateData.profile_bio = req.body.profile_bio;
         }
 
+        // Update user
         await User.update(updateData, {
             where: { id: req.user.id }
         });
 
+        // Get updated user with enrollments
         const user = await User.findByPk(req.user.id, {
-            attributes: { exclude: ['password'] }
+            attributes: { exclude: ['password'] },
+            include: [{
+                model: Enrollment,
+                as: 'enrollments',
+                include: [{
+                    model: Course,
+                    as: 'course',
+                    attributes: ['id', 'title', 'thumbnail', 'slug']
+                }]
+            }]
         });
 
         // Format user for frontend
@@ -79,6 +100,7 @@ router.put('/profile', protect, async (req, res) => {
 
         res.json({
             success: true,
+            message: 'Cập nhật hồ sơ thành công',
             data: userData
         });
     } catch (error) {

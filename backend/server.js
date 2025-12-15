@@ -17,6 +17,8 @@ const userRoutes = require('./routes/users-mysql');
 const enrollmentRoutes = require('./routes/enrollments-mysql');
 const uploadRoutes = require('./routes/upload-mysql');
 const adminRoutes = require('./routes/admin-mysql');
+const aboutRoutes = require('./routes/about');
+const contactRoutes = require('./routes/contact');
 
 const app = express();
 
@@ -41,6 +43,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/enrollments', enrollmentRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/about', aboutRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -18,33 +18,33 @@
     <div class="collapse navbar-collapse" id="navbarCollapse">
       <div class="navbar-nav ms-auto p-4 p-lg-0">
         <router-link to="/" class="nav-item nav-link" :class="{ active: $route.path === '/' }">
-          Home
+          Trang chủ
         </router-link>
         <router-link to="/about" class="nav-item nav-link" :class="{ active: $route.path === '/about' }">
-          About
+          Về chúng tôi
         </router-link>
         <router-link to="/courses" class="nav-item nav-link" :class="{ active: $route.path === '/courses' }">
-          Courses
+          Khóa học
         </router-link>
         <div class="nav-item dropdown">
-          <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
-          <div class="dropdown-menu fade-down m-0">
+          <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" @click.prevent>Pages</a>
+          <div class="dropdown-menu fade-down">
             <router-link to="/team" class="dropdown-item">Our Team</router-link>
             <router-link to="/testimonial" class="dropdown-item">Testimonial</router-link>
           </div>
         </div>
         <router-link to="/contact" class="nav-item nav-link" :class="{ active: $route.path === '/contact' }">
-          Contact
+          Liên hệ
         </router-link>
         <template v-if="authStore.isAuthenticated">
           <div class="nav-item dropdown">
-            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" @click.prevent>
               <i class="fa fa-user"></i> {{ authStore.user?.username }}
             </a>
-            <div class="dropdown-menu fade-down m-0">
-              <router-link to="/profile" class="dropdown-item">Profile</router-link>
-              <router-link v-if="authStore.isAdmin" to="/admin" class="dropdown-item">Admin</router-link>
-              <a href="#" class="dropdown-item" @click.prevent="handleLogout">Logout</a>
+            <div class="dropdown-menu dropdown-menu-end fade-down">
+              <router-link to="/profile" class="dropdown-item">Hồ sơ</router-link>
+              <router-link v-if="authStore.isAdmin" to="/admin" class="dropdown-item">Quản trị</router-link>
+              <a href="#" class="dropdown-item" @click.prevent="handleLogout">Đăng xuất</a>
             </div>
           </div>
         </template>
@@ -74,4 +74,55 @@ const handleLogout = () => {
   router.push('/')
 }
 </script>
+
+<style scoped>
+.nav-item.dropdown {
+  position: relative;
+}
+
+.dropdown-menu {
+  min-width: 180px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  margin-top: 0.5rem;
+}
+
+.dropdown-menu-end {
+  right: 0;
+  left: auto;
+}
+
+.dropdown-item {
+  padding: 0.5rem 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+  color: #fb873f;
+}
+
+.dropdown-item.router-link-active {
+  background-color: #fff5f0;
+  color: #fb873f;
+}
+
+@media (max-width: 991.98px) {
+  .dropdown-menu {
+    position: static !important;
+    float: none;
+    width: 100%;
+    margin-top: 0;
+    box-shadow: none;
+    border: none;
+    border-top: 1px solid #eee;
+  }
+  
+  .dropdown-menu-end {
+    right: auto;
+    left: auto;
+  }
+}
+</style>
 

@@ -3,7 +3,7 @@
     <!-- Spinner -->
     <div v-if="loading" id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
       <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-        <span class="sr-only">Loading...</span>
+        <span class="sr-only">Đang tải...</span>
       </div>
     </div>
 
@@ -16,12 +16,12 @@
             <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center" style="background: rgba(24, 29, 56, .7);">
               <div class="container">
                 <div class="row justify-content-start">
-                  <div class="col-sm-10 col-lg-8">
-                    <h5 class="text-uppercase mb-3 animated slideInDown" style="color: #fb873f;">Best E-learning platform</h5>
-                    <h1 class="display-3 text-white animated slideInDown">Learn Job ready skills from free online courses with certificates</h1>
-                    <p class="text-white mb-4 pb-2">Explore a wide range of courses designed to enhance your expertise in technology, business, arts, and more. Start learning today!</p>
-                    <router-link to="/about" class="btn btn-primary py-md-3 px-md-5 me-3 animated slideInLeft">Read More</router-link>
-                    <router-link to="/register" class="btn btn-light py-md-3 px-md-5 animated slideInRight">Join Now</router-link>
+                  <div class="col-sm-10 col-lg-8 hero-content">
+                    <h5 class="text-uppercase mb-3 animated slideInDown text-break" style="color: #fb873f;">Nền tảng E-learning tốt nhất</h5>
+                    <h1 class="display-3 text-white animated slideInDown text-break">Học kỹ năng sẵn sàng cho công việc với khóa học miễn phí có chứng chỉ</h1>
+                    <p class="text-white mb-4 pb-2 text-break">Khám phá các khóa học về công nghệ, kinh doanh, nghệ thuật và hơn thế nữa. Bắt đầu học ngay!</p>
+                    <router-link to="/about" class="btn btn-primary py-md-3 px-md-5 me-3 animated slideInLeft">Đọc thêm</router-link>
+                    <router-link to="/register" class="btn btn-light py-md-3 px-md-5 animated slideInRight">Tham gia ngay</router-link>
                   </div>
                 </div>
               </div>
@@ -32,12 +32,12 @@
             <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center" style="background: rgba(24, 29, 56, .7);">
               <div class="container">
                 <div class="row justify-content-start">
-                  <div class="col-sm-10 col-lg-8">
-                    <h5 class="text-uppercase mb-3 animated slideInDown" style="color: #fb873f;">Welcome to Secret Coder</h5>
-                    <h1 class="display-3 text-white animated slideInDown">Interactive Learning Experience</h1>
-                    <p class="text-white mb-4 pb-2">Engage with interactive lessons, quizzes, and projects. Experience hands-on learning that keeps you motivated and inspired.</p>
-                    <router-link to="/about" class="btn btn-primary py-md-3 px-md-5 me-3 animated slideInLeft">Read More</router-link>
-                    <router-link to="/register" class="btn btn-light py-md-3 px-md-5 animated slideInRight">Join Now</router-link>
+                  <div class="col-sm-10 col-lg-8 hero-content">
+                    <h5 class="text-uppercase mb-3 animated slideInDown text-break" style="color: #fb873f;">Chào mừng đến với Secret Coder</h5>
+                    <h1 class="display-3 text-white animated slideInDown text-break">Trải nghiệm học tập tương tác</h1>
+                    <p class="text-white mb-4 pb-2 text-break">Tham gia với các bài học tương tác, câu đố và dự án. Trải nghiệm học tập thực hành giúp bạn luôn có động lực và cảm hứng.</p>
+                    <router-link to="/about" class="btn btn-primary py-md-3 px-md-5 me-3 animated slideInLeft">Đọc thêm</router-link>
+                    <router-link to="/register" class="btn btn-light py-md-3 px-md-5 animated slideInRight">Tham gia ngay</router-link>
                   </div>
                 </div>
               </div>
@@ -46,11 +46,11 @@
         </div>
         <button class="carousel-control-prev" type="button" data-bs-target="#headerCarousel" data-bs-slide="prev">
           <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Previous</span>
+          <span class="visually-hidden">Trước</span>
         </button>
         <button class="carousel-control-next" type="button" data-bs-target="#headerCarousel" data-bs-slide="next">
           <span class="carousel-control-next-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Next</span>
+          <span class="visually-hidden">Tiếp theo</span>
         </button>
       </div>
     </div>
@@ -61,44 +61,44 @@
       <div class="container">
         <div class="row g-2 text-center">
           <div class="col-12 wow fadeInUp" data-wow-delay="0.3s">
-            <h1 style="color: #fb873f;">Invest in your professional goals with Secret Coder</h1>
-            <p class="mb-5">Get unlimited access to over 90% of courses, Projects, Specializations, and Professional Certificates on Coursera, taught by top instructors.</p>
+            <h1 class="text-break" style="color: #fb873f;">Đầu tư vào mục tiêu nghề nghiệp của bạn với Secret Coder</h1>
+            <p class="mb-5 text-break">Nhận quyền truy cập không giới hạn vào hơn 90% khóa học, Dự án, Chuyên ngành và Chứng chỉ Chuyên nghiệp, được giảng dạy bởi các giảng viên hàng đầu.</p>
           </div>
         </div>
         <div class="row g-4">
           <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-delay="0.1s">
-            <div class="service-item text-center pt-3 shadow">
-              <div class="p-4">
-                <img src="/img/icon1.png" alt="" width="60px" class="mb-4">
-                <h5 class="mb-3">Learn anything</h5>
-                <p>Explore any interest or trending topic, take prerequisites, and advance your skills</p>
+            <div class="service-item text-center pt-3 shadow h-100 d-flex flex-column">
+              <div class="p-4 d-flex flex-column flex-grow-1">
+                <img src="/img/icon1.png" alt="" width="60px" class="mb-4 mx-auto">
+                <h5 class="mb-3">Học bất cứ điều gì</h5>
+                <p class="mb-0 flex-grow-1">Khám phá mọi chủ đề đang thịnh hành và nâng cao kỹ năng của bạn</p>
               </div>
             </div>
           </div>
           <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-delay="0.3s">
-            <div class="service-item text-center pt-3 shadow">
-              <div class="p-4">
-                <img src="/img/icon2.png" alt="" width="60px" class="mb-4">
-                <h5 class="mb-3">Save money</h5>
-                <p>Spend less money on your learning if you plan to take multiple courses this year</p>
+            <div class="service-item text-center pt-3 shadow h-100 d-flex flex-column">
+              <div class="p-4 d-flex flex-column flex-grow-1">
+                <img src="/img/icon2.png" alt="" width="60px" class="mb-4 mx-auto">
+                <h5 class="mb-3">Tiết kiệm chi phí</h5>
+                <p class="mb-0 flex-grow-1">Tiết kiệm khi đăng ký nhiều khóa học trong năm</p>
               </div>
             </div>
           </div>
           <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-delay="0.5s">
-            <div class="service-item text-center pt-3 shadow">
-              <div class="p-4">
-                <img src="/img/icon3.png" alt="" width="60px" class="mb-4">
-                <h5 class="mb-3">Flexible learning</h5>
-                <p>Learn at your own pace, move between multiple courses, or switch to a different course</p>
+            <div class="service-item text-center pt-3 shadow h-100 d-flex flex-column">
+              <div class="p-4 d-flex flex-column flex-grow-1">
+                <img src="/img/icon3.png" alt="" width="60px" class="mb-4 mx-auto">
+                <h5 class="mb-3">Học tập linh hoạt</h5>
+                <p class="mb-0 flex-grow-1">Học theo tốc độ của bạn và chuyển đổi giữa các khóa học dễ dàng</p>
               </div>
             </div>
           </div>
           <div class="col-lg-3 col-sm-6 wow fadeInUp" data-wow-delay="0.7s">
-            <div class="service-item text-center pt-3 shadow">
-              <div class="p-4">
-                <img src="/img/icon4.png" alt="" width="60px" class="mb-4">
-                <h5 class="mb-3">Unlimited certificates</h5>
-                <p>Earn a certificate for every learning program that you complete at no additional cost</p>
+            <div class="service-item text-center pt-3 shadow h-100 d-flex flex-column">
+              <div class="p-4 d-flex flex-column flex-grow-1">
+                <img src="/img/icon4.png" alt="" width="60px" class="mb-4 mx-auto">
+                <h5 class="mb-3">Chứng chỉ không giới hạn</h5>
+                <p class="mb-0 flex-grow-1">Nhận chứng chỉ cho mọi khóa học hoàn thành, không phát sinh thêm phí</p>
               </div>
             </div>
           </div>
@@ -117,31 +117,31 @@
             </div>
           </div>
           <div class="col-lg-6 wow fadeInUp" data-wow-delay="0.3s">
-            <h6 class="section-title bg-white text-start pe-3">About Us</h6>
-            <h1 class="mb-4" style="color: #fb873f;">Welcome to Secret Coder</h1>
-            <p class="mb-4">At Secret Coder, we believe in accessible, innovative learning experiences that adapt to your schedule and learning style. Join us in embracing the future of education and unlock your potential with our immersive online courses.</p>
-            <p class="mb-4">Welcome to Secret Coder, your gateway to boundless learning opportunities. We're dedicated to democratizing education, offering a diverse range of courses taught by industry experts. Our mission is to empower learners worldwide, fostering a community-driven platform where knowledge knows no limits.</p>
+            <h6 class="section-title bg-white text-start pe-3 text-break">Về chúng tôi</h6>
+            <h1 class="mb-4 text-break" style="color: #fb873f;">Chào mừng đến với Secret Coder</h1>
+            <p class="mb-4 text-break">Tại Secret Coder, chúng tôi tin vào những trải nghiệm học tập dễ tiếp cận và đổi mới, phù hợp với lịch trình và phong cách học tập của bạn. Hãy tham gia cùng chúng tôi để đón nhận tương lai của giáo dục và khám phá tiềm năng của bạn với các khóa học trực tuyến đầy tính tương tác của chúng tôi.</p>
+            <p class="mb-4 text-break">Chào mừng đến với Secret Coder, cánh cửa của bạn đến với những cơ hội học tập vô hạn. Chúng tôi cam kết dân chủ hóa giáo dục, cung cấp nhiều khóa học đa dạng được giảng dạy bởi các chuyên gia trong ngành. Sứ mệnh của chúng tôi là trao quyền cho người học trên toàn thế giới, xây dựng một nền tảng cộng đồng nơi kiến thức không có giới hạn.</p>
             <div class="row gy-2 gx-4 mb-4">
               <div class="col-sm-6">
-                <p class="mb-0"><i class="fa fa-arrow-right me-2"></i>Expert Instructors</p>
+                <p class="mb-0"><i class="fa fa-arrow-right me-2"></i>Giảng viên chuyên nghiệp</p>
               </div>
               <div class="col-sm-6">
-                <p class="mb-0"><i class="fa fa-arrow-right me-2"></i>Live Interactive Sessions</p>
+                <p class="mb-0"><i class="fa fa-arrow-right me-2"></i>Buổi học tương tác trực tiếp</p>
               </div>
               <div class="col-sm-6">
-                <p class="mb-0"><i class="fa fa-arrow-right me-2"></i>Comprehensive Course Catalog</p>
+                <p class="mb-0"><i class="fa fa-arrow-right me-2"></i>Danh mục khóa học toàn diện</p>
               </div>
               <div class="col-sm-6">
-                <p class="mb-0"><i class="fa fa-arrow-right me-2"></i>Community Engagement</p>
+                <p class="mb-0"><i class="fa fa-arrow-right me-2"></i>Tham gia cộng đồng</p>
               </div>
               <div class="col-sm-6">
-                <p class="mb-0"><i class="fa fa-arrow-right me-2"></i>Personalized Learning Paths</p>
+                <p class="mb-0"><i class="fa fa-arrow-right me-2"></i>Lộ trình học tập cá nhân hóa</p>
               </div>
               <div class="col-sm-6">
-                <p class="mb-0"><i class="fa fa-arrow-right me-2"></i>Certification and Recognition</p>
+                <p class="mb-0"><i class="fa fa-arrow-right me-2"></i>Chứng nhận và công nhận</p>
               </div>
             </div>
-            <router-link to="/about" class="btn text-light py-3 px-5 mt-2" style="background-color: #fb873f;">Read More</router-link>
+            <router-link to="/about" class="btn text-light py-3 px-5 mt-2" style="background-color: #fb873f;">Đọc thêm</router-link>
           </div>
         </div>
       </div>
@@ -153,9 +153,9 @@
       <div class="container">
         <div class="row g-5">
           <div class="col-lg-6 p-5 wow fadeInUp" data-wow-delay="0.3s">
-            <h1 class="mb-4" style="color: #fb873f;">Explore Free Courses</h1>
-            <p class="mb-4">Start your online learning journey at Great Learning Academy for free with our short-term basic courses across various in-demand domains.</p>
-            <router-link to="/register" class="btn text-light py-3 px-5 mt-2" style="background-color: #fb873f;">Start For Free</router-link>
+            <h1 class="mb-4 text-break" style="color: #fb873f;">Khám phá các khóa học miễn phí</h1>
+            <p class="mb-4 text-break">Bắt đầu hành trình học tập trực tuyến của bạn tại Secret Coder miễn phí với các khóa học cơ bản ngắn hạn của chúng tôi trên nhiều lĩnh vực đang được quan tâm.</p>
+            <router-link to="/register" class="btn text-light py-3 px-5 mt-2" style="background-color: #fb873f;">Bắt đầu miễn phí</router-link>
           </div>
           <div class="col-lg-6 wow fadeInUp" data-wow-delay="0.1s" style="min-height: 400px;">
             <div class="position-relative h-100">
@@ -171,8 +171,8 @@
     <div class="container-xxl py-5 category">
       <div class="container">
         <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
-          <h6 class="section-title bg-white text-center px-3">Categories</h6>
-          <h1 class="mb-5" style="color: #fb873f;">Popular Topics to Explore</h1>
+          <h6 class="section-title bg-white text-center px-3 text-break">Danh mục</h6>
+          <h1 class="mb-5 text-break" style="color: #fb873f;">Các chủ đề phổ biến để khám phá</h1>
         </div>
         <div class="row g-2 m-2">
           <div v-for="category in categories" :key="category.id" class="col-lg-3 col-md-6 text-center">
@@ -192,8 +192,8 @@
     <div class="container-xxl py-5">
       <div class="container">
         <div class="text-center wow fadeInUp" data-wow-delay="0.1s">
-          <h6 class="section-title bg-white text-center px-3">Popular Courses</h6>
-          <h1 class="mb-5" style="color: #fb873f;">Explore new and trending free online courses</h1>
+          <h6 class="section-title bg-white text-center px-3 text-break">Khóa học phổ biến</h6>
+          <h1 class="mb-5 text-break" style="color: #fb873f;">Khám phá các khóa học trực tuyến miễn phí mới và đang thịnh hành</h1>
         </div>
         <div class="row g-4 py-2">
           <div v-for="course in courses" :key="course.id" class="col-lg-3 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
@@ -204,7 +204,7 @@
                   :style="`position:absolute;top: 15px;left: 16px; font-size:12px; border-radius:3px; background-color:${(course.price || 0) === 0 ? '#fb873f' : '#0ed44c'};`"
                   class="px-2 py-1 fw-bold text-uppercase text-white"
                 >
-                  {{ (course.price || 0) === 0 ? 'FREE' : 'PAID' }}
+                  {{ (course.price || 0) === 0 ? 'MIỄN PHÍ' : 'TRẢ PHÍ' }}
                 </div>
               </div>
               <div class="p-2 pb-0 flex-grow-1">
@@ -220,16 +220,16 @@
                   <i class="fa fa-user-graduate me-2"></i>{{ formatLearners(course.enrolledCount || 0) }}
                 </small>
                 <small class="flex-fill text-center py-1 px-2">
-                  <i class="fa fa-user me-2"></i>{{ course.level || 'Beginner' }}
+                  <i class="fa fa-user me-2"></i>{{ course.level === 'Beginner' ? 'Người mới bắt đầu' : course.level === 'Intermediate' ? 'Trung cấp' : course.level === 'Advanced' ? 'Nâng cao' : course.level || 'Người mới bắt đầu' }}
                 </small>
               </div>
               <div class="d-flex">
                 <small class="flex-fill text-left p-2 px-2">
-                  <i class="fa fa-clock me-2"></i>{{ course.duration || 0 }} Hrs
+                  <i class="fa fa-clock me-2"></i>{{ course.duration || 0 }} Giờ
                 </small>
                 <small class="py-1 px-2 fw-bold fs-6 text-center">₹ {{ course.price || 0 }}</small>
                 <small class="text-primary py-1 px-2 fw-bold fs-6" style="float:right;">
-                  <router-link :to="{ name: 'CourseDetail', params: { id: course.id } }" class="text-primary text-decoration-none">Enroll Now</router-link>
+                  <router-link :to="{ name: 'CourseDetail', params: { id: course.id } }" class="text-primary text-decoration-none">Đăng ký ngay</router-link>
                   <i class="fa fa-chevron-right me-2 fs-10"></i>
                 </small>
               </div>
@@ -239,7 +239,7 @@
       </div>
     </div>
     <div class="container text-center">
-      <router-link to="/courses" class="btn text-light py-3 px-5 mt-2 mb-5" style="background-color: #fb873f;">All Courses</router-link>
+      <router-link to="/courses" class="btn text-light py-3 px-5 mt-2 mb-5" style="background-color: #fb873f;">Tất cả khóa học</router-link>
     </div>
     <!-- Courses End -->
 
@@ -314,4 +314,26 @@ onBeforeUnmount(() => {
 })
 </script>
 
+<style scoped>
+.hero-content {
+  max-width: 820px;
+}
+
+.text-break {
+  word-break: break-word;
+}
+
+.service-item .p-4 p {
+  min-height: 72px;
+}
+
+@media (max-width: 576px) {
+  .display-3 {
+    font-size: 2rem;
+  }
+  .hero-content {
+    max-width: 100%;
+  }
+}
+</style>
 

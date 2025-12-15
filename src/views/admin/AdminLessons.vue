@@ -1,9 +1,7 @@
 <template>
   <div>
-    <div class="topbar">
-      <div>
-        <h5 class="mb-0">Quản lý Bài học</h5>
-      </div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div></div>
       <div>
         <button class="btn btn-primary" @click="showAddLessonModal">
           <i class="fa fa-plus me-2"></i>Thêm Bài học

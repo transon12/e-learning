@@ -2,6 +2,9 @@ const User = require('./User');
 const Course = require('./Course');
 const Lesson = require('./Lesson');
 const { Enrollment, CompletedLesson } = require('./Enrollment');
+const About = require('./About');
+const ContactMessage = require('./ContactMessage');
+const ContactInfo = require('./ContactInfo');
 const { sequelize } = require('../config/database');
 
 // Course Sections Model
@@ -89,6 +92,10 @@ CompletedLesson.belongsTo(Lesson, { foreignKey: 'lesson_id', as: 'lesson' });
 
 Course.hasMany(Enrollment, { foreignKey: 'course_id', as: 'enrollments' });
 
+// Contact associations
+ContactMessage.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+ContactMessage.belongsTo(User, { foreignKey: 'replied_by', as: 'repliedByUser' });
+
 module.exports = {
     sequelize,
     User,
@@ -97,6 +104,9 @@ module.exports = {
     CourseSection,
     SectionLesson,
     Enrollment,
-    CompletedLesson
+    CompletedLesson,
+    About,
+    ContactMessage,
+    ContactInfo
 };
 

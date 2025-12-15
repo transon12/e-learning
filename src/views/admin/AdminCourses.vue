@@ -1,9 +1,7 @@
 <template>
   <div>
-    <div class="topbar">
-      <div>
-        <h5 class="mb-0">Quản lý Khóa học</h5>
-      </div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div></div>
       <div>
         <button class="btn btn-primary" @click="showAddCourseModal">
           <i class="fa fa-plus me-2"></i>Thêm Khóa học
@@ -149,9 +147,14 @@
                   <label class="form-label">Danh mục *</label>
                   <select v-model="courseForm.category" class="form-select" required>
                     <option value="">Chọn danh mục</option>
-                    <option value="Python">Python</option>
-                    <option value="Java">Java</option>
-                    <option value="Web Development">Web Development</option>
+                    <option value="Giới thiệu bản thân">Giới thiệu bản thân</option>
+                    <option value="Sở thích">Sở thích</option>
+                    <option value="Đồ ăn">Đồ ăn</option>
+                    <option value="Du lịch">Du lịch</option>
+                    <option value="Công việc">Công việc</option>
+                    <option value="Trường học / Việc học">Trường học / Việc học</option>
+                    <option value="Gia đình">Gia đình</option>
+                    <option value="Sức khỏe">Sức khỏe</option>
                   </select>
                 </div>
                 <div class="col-md-6 mb-3">

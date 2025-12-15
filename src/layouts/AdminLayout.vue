@@ -6,21 +6,12 @@
         <i class="fa fa-bars"></i>
       </button>
 
-      <div class="admin-header d-flex align-items-center justify-content-end">
+      <div class="admin-header d-flex align-items-center justify-content-between">
+        <div>
+          <h4 class="mb-0 fw-bold" style="color: #333;">{{ pageTitle }}</h4>
+        </div>
         <div class="dropdown">
-          <button
-            class="btn btn-outline-primary admin-user-btn"
-            type="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
             <span class="avatar-circle me-2">{{ (authStore.user?.username || 'A').charAt(0).toUpperCase() }}</span>
-            <span class="d-none d-sm-inline text-start">
-              <strong class="d-block lh-1">{{ authStore.user?.username || 'Admin' }}</strong>
-              <small class="text-muted">{{ authStore.user?.email || '' }}</small>
-            </span>
-            <i class="fa fa-chevron-down ms-2"></i>
-          </button>
           <ul class="dropdown-menu dropdown-menu-end shadow-sm">
             <li class="px-3 py-2">
               <div class="fw-bold">{{ authStore.user?.username || 'Admin' }}</div>
@@ -43,11 +34,30 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRoute } from 'vue-router'
 import AdminSidebar from '@/components/admin/AdminSidebar.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
+
+const route = useRoute()
+
+const pageTitle = computed(() => {
+  const titleMap = {
+    'Admin': 'Dashboard',
+    'AdminUsers': 'Quản lý Học viên',
+    'AdminCourses': 'Quản lý Khóa học',
+    'AdminLessons': 'Quản lý Bài học',
+    'AdminCourseSections': 'Quản lý Chương học',
+    'AdminEnrollments': 'Quản lý Đăng ký Khóa học',
+    'AdminStats': 'Thống kê & Báo cáo',
+    'AdminInstructors': 'Quản lý Giảng viên',
+    'AdminStudents': 'Quản lý Học viên',
+    'AdminContactMessages': 'Quản lý Tin nhắn Liên hệ'
+  }
+  return titleMap[route.name] || 'Admin'
+})
 
 const isSidebarOpen = ref(true)
 const authStore = useAuthStore()

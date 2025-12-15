@@ -1,9 +1,5 @@
 <template>
   <div>
-    <div class="topbar">
-      <h5 class="mb-0">Thống kê & Báo cáo</h5>
-    </div>
-
     <div v-if="loading" class="text-center py-5">
       <div class="spinner-border text-primary" role="status"></div>
     </div>

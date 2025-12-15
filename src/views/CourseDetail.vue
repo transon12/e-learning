@@ -143,7 +143,13 @@ const resolveThumbnail = (thumb) => {
 onMounted(async () => {
   await fetchCourse()
   if (authStore.isAuthenticated) {
+    // Admin không cần check enrollment
+    if (authStore.isAdmin) {
+      isEnrolled.value = true
+      enrollmentStatus.value = 'approved'
+    } else {
     await checkEnrollment()
+    }
   }
 })
 

@@ -112,8 +112,8 @@ POST /api/auth/register
 {
   "username": "admin",
   "email": "admin@e-learning.com",
-  "password": "ZdQX8Ns$ik7wRY2$
-"
+  "password": "ZdQX8Ns$ik7wRY2$"
+
 }
 ```
 

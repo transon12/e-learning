@@ -12,11 +12,7 @@
           <i class="fa fa-home"></i><span>Dashboard</span>
         </router-link>
       </li>
-      <li>
-        <router-link to="/admin/users" :class="{ active: $route.path === '/admin/users' }">
-          <i class="fa fa-users"></i><span>Quản lý Học viên</span>
-        </router-link>
-      </li>
+    
       <li>
         <router-link to="/admin/courses" :class="{ active: $route.path === '/admin/courses' }">
           <i class="fa fa-book"></i><span>Quản lý Khóa học</span>
@@ -40,6 +36,21 @@
       <li>
         <router-link to="/admin/stats" :class="{ active: $route.path === '/admin/stats' }">
           <i class="fa fa-chart-bar"></i><span>Thống kê</span>
+        </router-link>
+      </li>
+      <li>
+        <router-link to="/admin/instructors" :class="{ active: $route.path === '/admin/instructors' }">
+          <i class="fa fa-chalkboard-teacher"></i><span>Quản lý Giảng viên</span>
+        </router-link>
+      </li>
+      <li>
+        <router-link to="/admin/students" :class="{ active: $route.path === '/admin/students' }">
+          <i class="fa fa-user-graduate"></i><span>Tạo Học viên</span>
+        </router-link>
+      </li>
+      <li>
+        <router-link to="/admin/contact-messages" :class="{ active: $route.path === '/admin/contact-messages' }">
+          <i class="fa fa-envelope"></i><span>Tin nhắn Liên hệ</span>
         </router-link>
       </li>
       <li>

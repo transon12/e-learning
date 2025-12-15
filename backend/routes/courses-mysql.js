@@ -11,13 +11,16 @@ const router = express.Router();
 // @access  Public
 router.get('/', async (req, res) => {
     try {
-        const { category, level, search, page = 1, limit = 12 } = req.query;
+        const { category, level, search, page = 1, limit = 12, instructor_id } = req.query;
         
         // Build where clause
-        const where = {
-            status: 'published',
-            isActive: true
-        };
+        const where = {};
+        
+        // Only filter by status and isActive if not admin (for admin, show all courses)
+        if (!req.user || req.user.role !== 'admin') {
+            where.status = 'published';
+            where.isActive = true;
+        }
         
         if (category) {
             where.category = category;
@@ -26,6 +29,10 @@ router.get('/', async (req, res) => {
         if (level) {
             // Normalize level to lowercase for database query
             where.level = level.toLowerCase();
+        }
+        
+        if (instructor_id) {
+            where.instructor_id = parseInt(instructor_id);
         }
         
         if (search) {

@@ -1,9 +1,6 @@
 <template>
   <div>
-    <div class="topbar">
-      <div>
-        <h5 class="mb-0">Quản lý Học viên</h5>
-      </div>
+    <div class="d-flex justify-content-end align-items-center mb-3">
       <div>
         <input 
           v-model="searchTerm" 
@@ -249,8 +246,33 @@ const toggleUserStatus = async (user) => {
   if (!confirm(`Bạn có chắc muốn ${action} học viên này?`)) return
 
   try {
-    await api.put(`/admin/users/${user.id}/status`)
-    await loadUsers()
+    const response = await api.put(`/admin/users/${user.id}/status`)
+    
+    // Update local state immediately for instant UI update (no need to reload list)
+    const userIndex = users.value.findIndex(u => u.id === user.id)
+    if (userIndex !== -1) {
+      // Update isActive from response
+      if (response.data?.data) {
+        const updatedUser = response.data.data
+        const newStatus = updatedUser.isActive !== undefined 
+          ? updatedUser.isActive 
+          : updatedUser.is_active !== undefined 
+            ? updatedUser.is_active 
+            : !users.value[userIndex].isActive
+        
+        // Update both fields for consistency
+        users.value[userIndex].isActive = newStatus
+        users.value[userIndex].is_active = newStatus
+      } else {
+        // Toggle locally if response doesn't have data
+        const newStatus = !users.value[userIndex].isActive
+        users.value[userIndex].isActive = newStatus
+        users.value[userIndex].is_active = newStatus
+      }
+    }
+    
+    alert('Cập nhật trạng thái thành công!')
+    // Note: No loadUsers() call - local state is updated immediately
   } catch (error) {
     alert('Lỗi: ' + (error.response?.data?.message || error.message))
   }

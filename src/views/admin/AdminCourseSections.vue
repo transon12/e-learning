@@ -1,14 +1,13 @@
 <template>
   <div>
-    <div class="topbar">
+    <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
-        <h5 class="mb-0">Quản lý Sections & Lessons</h5>
-      </div>
-      <div>
-        <select v-model="selectedCourseId" class="form-select d-inline-block me-2" style="width: 250px;" @change="loadCourseSections">
+        <select v-model="selectedCourseId" class="form-select d-inline-block" style="width: 250px;" @change="loadCourseSections">
           <option value="">Chọn khóa học...</option>
           <option v-for="course in courses" :key="course.id" :value="course.id">{{ course.title }}</option>
         </select>
+      </div>
+      <div>
         <button v-if="selectedCourseId" class="btn btn-primary" @click="showAddSectionModal">
           <i class="fa fa-plus me-2"></i>Thêm Section
         </button>

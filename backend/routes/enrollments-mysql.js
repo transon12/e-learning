@@ -66,6 +66,18 @@ router.post('/:courseId', protect, async (req, res) => {
 // @access  Private
 router.post('/:courseId/complete-lesson/:lessonId', protect, async (req, res) => {
     try {
+        // Admin có thể mark complete mà không cần enrollment
+        if (req.user.role === 'admin') {
+            return res.json({
+                success: true,
+                message: 'Lesson marked as completed (Admin)',
+                data: {
+                    progress: 100,
+                    status: 'approved'
+                }
+            });
+        }
+
         const enrollment = await Enrollment.findOne({
             where: {
                 user_id: req.user.id,
@@ -156,6 +168,19 @@ router.post('/:courseId/complete-lesson/:lessonId', protect, async (req, res) =>
 // @access  Private
 router.get('/:courseId/progress', protect, async (req, res) => {
     try {
+        // Admin có thể xem progress mà không cần enrollment
+        if (req.user.role === 'admin') {
+            return res.json({
+                success: true,
+                data: {
+                    progress: 100,
+                    status: 'approved',
+                    completedLessons: [],
+                    enrolledAt: new Date()
+                }
+            });
+        }
+
         const enrollment = await Enrollment.findOne({
             where: {
                 user_id: req.user.id,
