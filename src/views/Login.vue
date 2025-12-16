@@ -69,8 +69,11 @@ const handleLogin = async (event) => {
 console.log(result);
 
   if (result.success) {
-    const redirect = route.query.redirect || '/'
-    router.push(redirect)
+    if (result.user.role === 'admin') {
+      router.push('/admin')
+    } else {
+      router.push('/')
+    }
   } else {
     alert(result.message)
   }
