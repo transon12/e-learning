@@ -6,17 +6,17 @@
           <div class="card shadow">
             <div class="card-body p-5">
               <h3 class="text-center mb-4">Đăng nhập</h3>
-              
+
               <!-- Error Alert -->
-              <div 
-                v-if="errorMessage" 
-                class="alert alert-danger alert-dismissible fade show" 
+              <div
+                v-if="errorMessage"
+                class="alert alert-danger alert-dismissible fade show"
                 role="alert"
               >
                 <i class="fa fa-exclamation-circle me-2"></i>{{ errorMessage }}
-                <button 
-                  type="button" 
-                  class="btn-close" 
+                <button
+                  type="button"
+                  class="btn-close"
                   @click="errorMessage = ''"
                   aria-label="Close"
                 ></button>
@@ -25,24 +25,24 @@
               <form @submit="handleLogin">
                 <div class="mb-3">
                   <label class="form-label">Email</label>
-                  <input 
-                    v-model="form.email" 
-                    type="email" 
-                    class="form-control" 
+                  <input
+                    v-model="form.email"
+                    type="email"
+                    class="form-control"
                     required
                   >
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Mật khẩu</label>
-                  <input 
-                    v-model="form.password" 
-                    type="password" 
-                    class="form-control" 
+                  <input
+                    v-model="form.password"
+                    type="password"
+                    class="form-control"
                     required
                   >
                 </div>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   class="btn btn-primary w-100 py-3"
                   :disabled="loading"
                 >
@@ -50,7 +50,7 @@
                 </button>
               </form>
               <p class="text-center mt-3">
-                Chưa có tài khoản? 
+                Chưa có tài khoản?
                 <router-link to="/register">Đăng ký</router-link>
               </p>
             </div>
@@ -81,10 +81,10 @@ const handleLogin = async (event) => {
   event.preventDefault()
   errorMessage.value = '' // Clear previous error
   loading.value = true
-  
+
   try {
     const result = await authStore.login(form.value)
-    
+
     if (result.success) {
       const redirect = route.query.redirect || '/'
       router.push(redirect)
