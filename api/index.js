@@ -6,6 +6,15 @@ const path = require('path');
 // Load environment variables
 dotenv.config();
 
+// Pre-load pg module for PostgreSQL dialect before requiring database config
+// This ensures pg is available when Sequelize initializes in Vercel serverless environment
+try {
+    require('pg');
+    require('pg-hstore');
+} catch (error) {
+    console.warn('Warning: pg packages not found:', error.message);
+}
+
 // Import routes (MySQL versions)
 const authRoutes = require('../backend/routes/auth-mysql');
 const courseRoutes = require('../backend/routes/courses-mysql');

@@ -71,11 +71,11 @@
                 <h6 class="mb-1">{{ lesson.title }}</h6>
                 <p class="text-muted small mb-1">{{ lesson.sectionName || 'N/A' }}</p>
                 <div class="d-flex gap-2">
-                  <span class="badge bg-secondary">{{ lesson.duration || 0 }} phút</span>
+                  <span class="badge bg-secondary">{{ lesson.durationMinutes || 0 }} phút</span>
                   <span :class="lesson.status === 'published' ? 'badge bg-success' : 'badge bg-warning'">
                     {{ lesson.status === 'published' ? 'Đã xuất bản' : 'Bản nháp' }}
                   </span>
-                  <span v-if="lesson.file_video_path" class="badge bg-info">Có Video</span>
+                  <span v-if="lesson.file_video_path || lesson.video_url" class="badge bg-info">Có Video</span>
                   <span v-if="lesson.file_audio_path" class="badge bg-success">Có Audio</span>
                   <span v-if="lesson.file_pdf_path" class="badge bg-danger">Có PDF</span>
                 </div>

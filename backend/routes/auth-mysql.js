@@ -126,6 +126,14 @@ router.post('/login', [
             });
         }
 
+        // Check if account is active
+        if (!user.isActive) {
+            return res.status(403).json({
+                success: false,
+                message: 'Tài khoản của bạn đang tạm khóa, hãy liên hệ với Admin'
+            });
+        }
+
         // Generate token
         const token = generateToken(user.id);
 

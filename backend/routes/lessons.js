@@ -13,7 +13,7 @@ router.get('/course/:courseId', async (req, res) => {
         const course = await Course.findById(req.params.courseId)
             .populate({
                 path: 'sections.lessons',
-                select: 'title slug duration order isPreview isLocked viewCount'
+                select: 'title slug duration order isPreview isLocked viewCount status'
             });
 
         if (!course) {

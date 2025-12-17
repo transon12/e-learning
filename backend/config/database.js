@@ -4,6 +4,16 @@ require('dotenv').config();
 // Determine database dialect from environment or default to PostgreSQL
 const DB_DIALECT = process.env.DB_DIALECT || 'postgres';
 
+// Pre-load pg module for PostgreSQL dialect to ensure it's available when Sequelize initializes
+// This is especially important for Vercel serverless functions
+if (DB_DIALECT === 'postgres') {
+    try {
+        require('pg');
+    } catch (error) {
+        console.warn('Warning: pg package not found. Please install it: npm install pg pg-hstore');
+    }
+}
+
 // Database configuration based on dialect
 const getDatabaseConfig = () => {
     const baseConfig = {

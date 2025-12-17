@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "vercel-build": "cd backend && npm install && cd .. && vite build",
+    "vercel-build": "npm install && cd api && npm install && cd .. && cd backend && npm install && cd .. && vite build",
     "install:all": "npm install && cd backend && npm install && cd .."
   },
   "dependencies": {
