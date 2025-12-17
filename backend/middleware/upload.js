@@ -45,22 +45,40 @@ const storage = multer.diskStorage({
 // File filter - cho phép PDF, MP3/MP4 (audio/video) và ảnh
 const fileFilter = (req, file, cb) => {
     const allowedTypes = [
+        // PDF
         'application/pdf',
+        // Audio formats (MP3, M4A, etc.)
         'audio/mpeg',
         'audio/mp3',
+        'audio/mp4',
+        'audio/m4a',
+        'audio/x-mpeg',
+        'audio/x-mp3',
+        'audio/x-m4a',
+        'audio/wav',
+        'audio/wave',
+        'audio/x-wav',
+        // Video formats (MP4, etc.)
         'video/mp4',
         'video/mpeg',
-        'audio/mp4',
+        'video/x-m4v',
+        'video/quicktime',
+        'video/x-msvideo',
+        // Image formats
         'image/jpeg',
         'image/png',
         'image/webp',
         'image/gif'
     ];
     
-    if (allowedTypes.includes(file.mimetype)) {
+    // Also check file extension as fallback
+    const ext = path.extname(file.originalname).toLowerCase();
+    const allowedExtensions = ['.pdf', '.mp3', '.mp4', '.m4a', '.wav', '.jpg', '.jpeg', '.png', '.webp', '.gif'];
+    
+    if (allowedTypes.includes(file.mimetype) || allowedExtensions.includes(ext)) {
         cb(null, true);
     } else {
-        cb(new Error('Chỉ cho phép upload file PDF, MP3/MP4, ảnh'), false);
+        cb(new Error(`Chỉ cho phép upload file PDF, MP3/MP4, ảnh. File type: ${file.mimetype}, Extension: ${ext}`), false);
     }
 };
 

@@ -2,6 +2,13 @@
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "installCommand": "npm install && cd backend && npm install && cd .. && cd api && npm install && cd ..",
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "api/node_modules/**",
+      "maxDuration": 30
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",

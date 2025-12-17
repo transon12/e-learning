@@ -18,7 +18,8 @@ router.get('/course/:courseId', async (req, res) => {
                 include: [{
                     model: Lesson,
                     as: 'lessons',
-                    attributes: ['id', 'title', 'slug', 'durationMinutes', 'order_index', 'isPreview', 'isLocked', 'viewCount'],
+                    attributes: ['id', 'title', 'slug', 'durationMinutes', 'order_index', 'isPreview', 'isLocked', 'viewCount', 'status', 'file_video_path',
+                        'file_audio_path', 'file_pdf_path', 'video_url'],
                     order: [['order_index', 'ASC']]
                 }],
                 order: [['order_index', 'ASC']]
@@ -71,7 +72,8 @@ router.get('/', async (req, res) => {
             limit: parseInt(limit),
             offset: parseInt(offset),
             order: [['order_index', 'ASC'], ['createdAt', 'DESC']],
-            attributes: ['id', 'title', 'slug', 'description', 'durationMinutes', 'order_index', 'status', 'course_id', 'section_id']
+            attributes: ['id', 'title', 'slug', 'description', 'durationMinutes', 'order_index', 'status', 'course_id', 'section_id', 'file_video_path',
+                'file_audio_path', 'file_pdf_path', 'video_url']
         });
 
         // Format lessons for frontend (with URLs)

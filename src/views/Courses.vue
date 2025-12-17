@@ -80,7 +80,7 @@
                   :style="`position:absolute;top: 15px;left: 16px; font-size:12px; border-radius:3px; background-color:${(course.price || 0) === 0 ? '#fb873f' : '#0ed44c'};`"
                   class="px-2 py-1 fw-bold text-uppercase text-white"
                 >
-                  {{ (course.price || 0) === 0 ? 'MIỄN PHÍ' : 'TRẢ PHÍ' }}
+                  {{ course.isFree ? 'MIỄN PHÍ' : 'TRẢ PHÍ' }}
                 </div>
               </div>
               <div class="p-2 pb-0 flex-grow-1">
@@ -96,14 +96,14 @@
                   <i class="fa fa-user-graduate me-2"></i>{{ formatLearners(course.enrolledCount || 0) }} Học viên
                 </small>
                 <small class="flex-fill text-center py-1 px-2">
-                  <i class="fa fa-user me-2"></i>{{ course.level === 'Beginner' ? 'Người mới bắt đầu' : course.level === 'Intermediate' ? 'Trung cấp' : course.level === 'Advanced' ? 'Nâng cao' : course.level || 'Người mới bắt đầu' }}
+                  <i class="fa fa-user me-2"></i>{{ course.level === 'Beginner' ? 'Người mới' : course.level === 'Intermediate' ? 'Trung cấp' : course.level === 'Advanced' ? 'Nâng cao' : course.level || 'Người mới bắt đầu' }}
                 </small>
               </div>
               <div class="d-flex">
                 <small class="flex-fill text-left p-2 px-2">
                   <i class="fa fa-clock me-2"></i>{{ course.duration || 0 }} Giờ
                 </small>
-                <small class="py-1 px-2 fw-bold fs-6 text-center">{{ (course.price || 0) === 0 ? 'Miễn phí' : `₫ ${course.price || 0}` }}</small>
+                <small class="py-1 px-2 fw-bold fs-6 text-center" v-if="!course.isFree">{{ course.isFree ? 'Miễn phí' : `₫ ${course.price || 0}` }}</small>
                 <small class="text-primary py-1 px-2 fw-bold fs-6" style="float:right;">
                   <router-link :to="{ name: 'CourseDetail', params: { id: course.id } }" class="text-primary text-decoration-none">Đăng ký ngay</router-link>
                   <i class="fa fa-chevron-right me-2 fs-10"></i>
